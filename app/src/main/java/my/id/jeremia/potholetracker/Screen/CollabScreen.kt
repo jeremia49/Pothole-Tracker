@@ -2,16 +2,13 @@ package my.id.jeremia.potholetracker.Screen
 
 import android.Manifest
 import android.app.Activity
-import android.app.Instrumentation.ActivityResult
 import android.content.pm.ActivityInfo
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
-import android.graphics.Color
 import android.os.Handler
 import android.os.Looper
 import android.util.Log
 import android.view.View
-import android.widget.ImageView
 import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -19,59 +16,42 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.camera.core.CameraSelector
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
-import androidx.camera.view.transform.ImageProxyTransformFactory
-import androidx.camera.view.transform.OutputTransform
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeContentPadding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Snackbar
-import androidx.compose.material3.SnackbarHost
-import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Outline
-import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
-import androidx.core.view.setPadding
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.intPreferencesKey
-import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.navigation.NavHostController
-import androidx.navigation.compose.rememberNavController
 import com.canhub.cropper.CropImageView
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -79,16 +59,11 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
-import my.id.jeremia.potholetracker.Extension.dashedBorder
 import my.id.jeremia.potholetracker.R
 import my.id.jeremia.potholetracker.ViewModel.CollabViewModel
 import my.id.jeremia.potholetracker.dataStore
 import my.id.jeremia.potholetracker.ui.theme.PotholeTrackerTheme
-import java.util.Timer
-import java.util.concurrent.TimeUnit
 import kotlin.concurrent.fixedRateTimer
-import kotlin.concurrent.schedule
 
 @Composable
 @androidx.annotation.OptIn(androidx.camera.view.TransformExperimental::class)
@@ -129,11 +104,7 @@ fun CollabScreen(
 
     val cameraPermissionRequest =
         rememberLauncherForActivityResult(contract = ActivityResultContracts.RequestPermission()) {
-            if (it) {
-                isCameraAccepted.value = true
-            } else {
-                isCameraAccepted.value = false
-            }
+            isCameraAccepted.value = it
         }
 
     LaunchedEffect(Unit) {
@@ -176,25 +147,25 @@ fun CollabScreen(
 
         scope.launch {
             leftRectFlow.collect {
-                leftRect.value = it
+                leftRect.intValue = it
             }
         }
 
         scope.launch {
             rightRectFlow.collect {
-                topRect.value = it
+                topRect.intValue = it
             }
         }
 
         scope.launch {
             widthRectFlow.collect {
-                widthRect.value = it
+                widthRect.intValue = it
             }
         }
 
         scope.launch {
             heightRectFlow.collect {
-                heightRect.value = it
+                heightRect.intValue = it
             }
         }
 
@@ -248,11 +219,10 @@ fun CollabScreen(
 
                         viewModel.setOriginalBitmapImage(originalbitmap)
 
-                        val croppedBitmap:Bitmap
-                        if((widthRect.intValue == 0)&&(heightRect.intValue==0)){
-                            croppedBitmap = originalbitmap
+                        val croppedBitmap:Bitmap = if((widthRect.intValue == 0)&&(heightRect.intValue==0)){
+                            originalbitmap
                         }else{
-                            croppedBitmap = Bitmap.createBitmap(
+                            Bitmap.createBitmap(
                                 originalbitmap,
                                 leftRect.intValue,
                                 topRect.intValue,
@@ -409,10 +379,10 @@ fun CollabScreen(
 
                             Text(
                                 "Rect :\n" +
-                                        "Left : ${leftRect.value}\n" +
-                                        "Top : ${topRect.value}\n" +
-                                        "Width : ${widthRect.value}\n" +
-                                        "Height : ${heightRect.value}\n"
+                                        "Left : ${leftRect.intValue}\n" +
+                                        "Top : ${topRect.intValue}\n" +
+                                        "Width : ${widthRect.intValue}\n" +
+                                        "Height : ${heightRect.intValue}\n"
                             )
 
                         }
