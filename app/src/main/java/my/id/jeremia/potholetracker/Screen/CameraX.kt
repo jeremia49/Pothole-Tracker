@@ -1,6 +1,9 @@
 package my.id.jeremia.potholetracker.Screen
 
+import android.app.Activity
 import android.content.Context
+import android.content.pm.ActivityInfo
+import android.content.res.Configuration
 import android.graphics.Bitmap
 import android.os.Environment
 import android.util.AttributeSet
@@ -42,6 +45,8 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -63,6 +68,8 @@ import java.util.concurrent.Executors
 
 @Composable
 fun CameraPreviewScreen() {
+    println("Created")
+
     val widthRect = remember {
         mutableIntStateOf(100)
     }
@@ -76,10 +83,14 @@ fun CameraPreviewScreen() {
         mutableIntStateOf(0)
     }
 
+    val configuration = LocalConfiguration.current
 
     val lensFacing = CameraSelector.LENS_FACING_BACK
+
     val lifecycleOwner = LocalLifecycleOwner.current
+
     val context = LocalContext.current
+
 
     val preview = Preview
         .Builder()
@@ -100,7 +111,8 @@ fun CameraPreviewScreen() {
 
     val cameraxSelector = CameraSelector.Builder().requireLensFacing(lensFacing).build()
 
-    LaunchedEffect(lensFacing) {
+    LaunchedEffect(Unit) {
+
         val viewPort = ViewPort.Builder(Rational(16, 9), Surface.ROTATION_0).build()
 
         val useCaseGroup = UseCaseGroup.Builder()
@@ -119,10 +131,25 @@ fun CameraPreviewScreen() {
     }
 
 
-    Column(
-        modifier = Modifier,
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Top,
+//    LaunchedEffect(lensFacing) {
+//
+//
+//    }
+
+    when(configuration.orientation){
+        Configuration.ORIENTATION_LANDSCAPE -> {
+            println("Landscape")
+        }
+        else -> {
+            println("Portrait")
+        }
+    }
+
+    Row(
+        modifier = Modifier
+            .fillMaxSize(),
+//        verticalAlignment = Alignment.CenterVertically,
+//        horizontalArrangement = Arrangement.Center,
     ) {
 
         Box(
@@ -231,7 +258,8 @@ fun CameraPreviewScreen() {
             Row {
                 Button(onClick = {
 
-                    val tempDir = context.getExternalFilesDir(Environment.DIRECTORY_PICTURES)
+                    val tempDir =
+                        context.getExternalFilesDir(Environment.DIRECTORY_PICTURES)
 
                     // Create a temporary file
                     var tempFile: File? = null
@@ -244,7 +272,11 @@ fun CameraPreviewScreen() {
                         try {
                             // Write the bitmap data to the file
                             val fos = FileOutputStream(tempFile)
-                            previewView.bitmap?.compress(Bitmap.CompressFormat.PNG, 100, fos)
+                            previewView.bitmap?.compress(
+                                Bitmap.CompressFormat.PNG,
+                                100,
+                                fos
+                            )
                             fos.flush()
                             fos.close()
                         } catch (e: IOException) {
@@ -252,7 +284,8 @@ fun CameraPreviewScreen() {
                         }
                     }
 
-                    Toast.makeText(context, "Berhasil menyimpan gambar", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(context, "Berhasil menyimpan gambar", Toast.LENGTH_SHORT)
+                        .show()
 
                 }) {
                     Text("Save")
@@ -263,9 +296,10 @@ fun CameraPreviewScreen() {
 
     }
 
+
 }
 
-private suspend fun Context.getCameraProvider(): ProcessCameraProvider =
+suspend fun Context.getCameraProvider(): ProcessCameraProvider =
     suspendCoroutine { continuation ->
         ProcessCameraProvider.getInstance(this).also { cameraProvider ->
             cameraProvider.addListener({

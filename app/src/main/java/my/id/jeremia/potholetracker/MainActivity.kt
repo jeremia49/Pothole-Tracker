@@ -1,5 +1,6 @@
 package my.id.jeremia.potholetracker
 
+import android.content.Context
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -32,13 +33,21 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.datastore.core.DataStore
+import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.preferencesDataStore
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import my.id.jeremia.potholetracker.Screen.CollabScreen
 import my.id.jeremia.potholetracker.Screen.HomeScreen
 import my.id.jeremia.potholetracker.Screen.MapScreen
+import my.id.jeremia.potholetracker.Screen.SettingCameraScreen
 import my.id.jeremia.potholetracker.ui.theme.PotholeTrackerTheme
+
+
+val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "settings")
+
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -58,24 +67,34 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-fun MyApp(modifier: Modifier=Modifier){
+fun MyApp(modifier: Modifier = Modifier) {
     val navController = rememberNavController()
 
     NavHost(navController = navController, startDestination = "home") {
-        composable("home") { HomeScreen(
-            {
-                navController.navigate("map")
-            },
-            {
-                navController.navigate("collab")
-            },
-        ) }
-        composable("map"){
+        composable("home") {
+            HomeScreen(
+                {
+                    navController.navigate("map")
+                },
+                {
+                    navController.navigate("collab")
+                },
+            )
+        }
+        composable("map") {
             MapScreen()
         }
-        composable("collab"){
-            CollabScreen()
+        composable("collab") {
+            CollabScreen({
+                navController.navigate("settingcamera")
+            })
         }
+        composable("settingcamera"){
+            SettingCameraScreen({
+                navController.popBackStack()
+            })
+        }
+
     }
 
 }
