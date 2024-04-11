@@ -61,7 +61,7 @@ fun MyApp(modifier: Modifier = Modifier) {
         }
         composable("collab") {
             CollabScreen({
-                navController.navigate("home")
+                navController.popBackStack()
             })
         }
 

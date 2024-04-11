@@ -4,6 +4,7 @@ import android.Manifest
 import android.app.Activity
 import android.content.pm.ActivityInfo
 import android.content.pm.PackageManager
+import android.content.res.Configuration
 import android.graphics.Bitmap
 import android.os.Handler
 import android.os.Looper
@@ -14,6 +15,9 @@ import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.camera.core.CameraSelector
+import androidx.camera.core.ImageCapture
+import androidx.camera.core.ImageCaptureException
+import androidx.camera.core.ImageProxy
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
 import androidx.compose.foundation.Image
@@ -24,6 +28,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeContentPadding
 import androidx.compose.foundation.layout.width
@@ -41,6 +46,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.painterResource
@@ -59,14 +65,20 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
+import my.id.jeremia.potholetracker.Extension.toBitmap
 import my.id.jeremia.potholetracker.R
 import my.id.jeremia.potholetracker.ViewModel.CollabViewModel
 import my.id.jeremia.potholetracker.dataStore
 import my.id.jeremia.potholetracker.ui.theme.PotholeTrackerTheme
+import java.util.concurrent.Executors
 import kotlin.concurrent.fixedRateTimer
 
+
 @Composable
-@androidx.annotation.OptIn(androidx.camera.view.TransformExperimental::class)
+@androidx.annotation.OptIn(
+    androidx.camera.core.ExperimentalGetImage::class,
+    androidx.camera.core.ExperimentalZeroShutterLag::class
+)
 fun CollabScreen(
     onBackPressed: () -> Unit,
     modifier: Modifier = Modifier,
@@ -99,6 +111,9 @@ fun CollabScreen(
 
     BackHandler {
         (context as? Activity)?.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
+        if (viewModel.timer.value !== null) {
+            viewModel.cancelTimer()
+        }
         onBackPressed()
     }
 
@@ -177,15 +192,20 @@ fun CollabScreen(
             (context as? Activity)?.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
     }
 
+    viewModel.setOrientation(LocalConfiguration.current.orientation)
 
-    val previewView = remember {
-        PreviewView(context).apply {
-            scaleType = PreviewView.ScaleType.FIT_CENTER
-            visibility = View.INVISIBLE
-        }
+    val imageCapture = remember {
+        ImageCapture.Builder()
+            .setCaptureMode(ImageCapture.CAPTURE_MODE_MINIMIZE_LATENCY)
+            .build()
+
     }
 
-    LaunchedEffect(Unit) {
+
+    LaunchedEffect(isCameraAccepted, viewModel.orientation) {
+
+        if (!isCameraAccepted.value) return@LaunchedEffect
+        if (viewModel.orientation.value != Configuration.ORIENTATION_LANDSCAPE) return@LaunchedEffect
 
         val cameraProviderFuture = ProcessCameraProvider.getInstance(context)
 
@@ -195,11 +215,18 @@ fun CollabScreen(
 
             val cameraSelector = CameraSelector.DEFAULT_BACK_CAMERA
 
+            viewModel.setPreviewView(
+                PreviewView(context).apply {
+                    scaleType = PreviewView.ScaleType.FIT_CENTER
+                    visibility = View.INVISIBLE
+                }
+            )
+
             val preview = androidx.camera.core.Preview
                 .Builder()
                 .build()
                 .also {
-                    it.setSurfaceProvider(previewView.surfaceProvider)
+                    it.setSurfaceProvider(viewModel.previewView.value!!.surfaceProvider)
                 }
 
             try {
@@ -208,34 +235,55 @@ fun CollabScreen(
 
                 // Bind use cases to camera
                 cameraProvider.bindToLifecycle(
-                    lifecycleOwner, cameraSelector, preview
+                    lifecycleOwner, cameraSelector, imageCapture, preview,
                 )
 
-
-                fixedRateTimer("preview", false, 0, 1000L) {
+                val timer = fixedRateTimer("preview", false, 0, 1000L) {
 
                     Handler(Looper.getMainLooper()).post {
-                        val originalbitmap = previewView.bitmap ?: return@post
 
-                        viewModel.setOriginalBitmapImage(originalbitmap)
+                        imageCapture.takePicture(
+                            ContextCompat.getMainExecutor(context),
+                            object : ImageCapture.OnImageCapturedCallback() {
+                                override fun onError(exc: ImageCaptureException) {
+                                    Log.e(
+                                        "ImageCapture",
+                                        "Photo capture failed: ${exc.message}",
+                                        exc
+                                    )
+                                }
 
-                        val croppedBitmap:Bitmap = if((widthRect.intValue == 0)&&(heightRect.intValue==0)){
-                            originalbitmap
-                        }else{
-                            Bitmap.createBitmap(
-                                originalbitmap,
-                                leftRect.intValue,
-                                topRect.intValue,
-                                widthRect.intValue,
-                                heightRect.intValue,
-                            )
-                        }
+                                override fun onCaptureSuccess(image: ImageProxy) {
+                                    super.onCaptureSuccess(image)
 
+                                    val originalbitmap = image.image!!.toBitmap()
+                                    viewModel.setOriginalBitmapImage(originalbitmap)
 
-                        viewModel.setBitmapImage(croppedBitmap)
+                                    val croppedBitmap: Bitmap =
+                                        if ((widthRect.intValue == 0) && (heightRect.intValue == 0)) {
+                                            originalbitmap
+
+                                        } else {
+                                            Bitmap.createBitmap(
+                                                originalbitmap,
+                                                leftRect.intValue,
+                                                topRect.intValue,
+                                                widthRect.intValue,
+                                                heightRect.intValue,
+                                            )
+                                        }
+
+                                    viewModel.setBitmapImage(croppedBitmap)
+                                    image.close()
+                                }
+                            }
+
+                        )
+
                     }
 
                 }
+                viewModel.setTimer(timer)
 
             } catch (exc: Exception) {
                 Log.e("InitCamera", "Use case binding failed", exc)
@@ -289,6 +337,10 @@ fun CollabScreen(
 
                         Button(onClick = {
 
+                            if (viewModel.timer.value !== null) {
+                                viewModel.cancelTimer()
+                            }
+
                             val leftKey = intPreferencesKey("left_rect")
                             val topKey = intPreferencesKey("top_rect")
                             val widthKey = intPreferencesKey("width_rect")
@@ -309,12 +361,13 @@ fun CollabScreen(
                                         Toast.LENGTH_SHORT
                                     ).show()
 
-                                    (context as? Activity)?.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
+
+                                    (context as? Activity)?.requestedOrientation =
+                                        ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
 
                                     onBackPressed()
 
                                 }
-
 
 
                             }
@@ -337,14 +390,18 @@ fun CollabScreen(
                     ) {
 
                         Box(
+                            modifier = modifier
+                                .defaultMinSize(100.dp, 100.dp),
                             contentAlignment = Alignment.Center
                         ) {
-                            AndroidView(
-                                factory = { previewView },
-                                modifier = Modifier
-                                    .defaultMinSize(100.dp, 100.dp)
-                                    .border(1.dp, androidx.compose.ui.graphics.Color.Red)
-                            )
+
+                            if (viewModel.previewView.value !== null) {
+                                AndroidView(
+                                    factory = { viewModel.previewView.value!! },
+                                    modifier = Modifier
+                                        .defaultMinSize(100.dp, 100.dp)
+                                )
+                            }
 
                             if (viewModel.bitmapImage.value != null) {
                                 Image(
@@ -352,6 +409,7 @@ fun CollabScreen(
                                     "Current Image"
                                 )
                             }
+
                         }
 
                         Column(
@@ -359,21 +417,81 @@ fun CollabScreen(
                                 .fillMaxSize()
                         ) {
 
-
-                            IconButton(
-                                onClick = {
-                                    isSettingCamera.value = true
-                                },
+                            Row(
                                 modifier = modifier
-                                    .width(35.dp)
-                                    .align(Alignment.End)
+                                    .fillMaxWidth(),
+                                horizontalArrangement = Arrangement.End,
                             ) {
-                                Icon(
-                                    painterResource(id = R.drawable.baseline_settings_24),
-                                    "Setting Camera",
+
+
+                                IconButton(onClick = {
+
+                                    if (viewModel.timer.value !== null) {
+                                        viewModel.cancelTimer()
+                                    }
+
+                                    val leftKey = intPreferencesKey("left_rect")
+                                    val topKey = intPreferencesKey("top_rect")
+                                    val widthKey = intPreferencesKey("width_rect")
+                                    val heightKey = intPreferencesKey("height_rect")
+
+                                    CoroutineScope(Dispatchers.IO).launch {
+                                        context.dataStore.edit { settings ->
+                                            settings[leftKey] = 0
+                                            settings[topKey] = 0
+                                            settings[widthKey] = 0
+                                            settings[heightKey] = 0
+                                        }
+
+                                        Handler(Looper.getMainLooper()).post {
+                                            Toast.makeText(
+                                                context,
+                                                "Berhasil mereset pengaturan",
+                                                Toast.LENGTH_SHORT
+                                            ).show()
+
+
+                                            (context as? Activity)?.requestedOrientation =
+                                                ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
+
+                                            onBackPressed()
+
+                                        }
+
+
+                                    }
+
+                                }) {
+                                    Icon(
+                                        painterResource(id = R.drawable.baseline_delete_24),
+                                        "Reset Camera",
+                                        modifier = modifier
+                                            .fillMaxSize()
+                                    )
+                                }
+
+
+                                IconButton(
+                                    onClick = {
+
+                                        if (viewModel.timer.value !== null) {
+                                            viewModel.cancelTimer()
+                                        }
+
+                                        isSettingCamera.value = true
+                                    },
                                     modifier = modifier
-                                        .fillMaxSize()
-                                )
+                                        .width(35.dp)
+                                ) {
+                                    Icon(
+                                        painterResource(id = R.drawable.baseline_settings_24),
+                                        "Setting Camera",
+                                        modifier = modifier
+                                            .fillMaxSize()
+                                    )
+                                }
+
+
                             }
 
 
@@ -384,6 +502,13 @@ fun CollabScreen(
                                         "Width : ${widthRect.intValue}\n" +
                                         "Height : ${heightRect.intValue}\n"
                             )
+
+//                            Button(onClick = {
+//
+//
+//                            }) {
+//                                Text("Process")
+//                            }
 
                         }
 

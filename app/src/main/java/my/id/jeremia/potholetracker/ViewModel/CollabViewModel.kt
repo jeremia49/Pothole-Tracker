@@ -8,6 +8,7 @@ import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
+import java.util.Timer
 
 class CollabViewModel : ViewModel(){
 
@@ -26,6 +27,8 @@ class CollabViewModel : ViewModel(){
     val _cropRect = mutableStateOf<Rect?>(null)
     val cropRect : State<Rect?> = _cropRect
 
+    val _timer = mutableStateOf<Timer?>(null)
+    val timer : State<Timer?> = _timer
 
     fun setPreviewView(p: PreviewView){
         _previewView.value = p
@@ -47,8 +50,13 @@ class CollabViewModel : ViewModel(){
         _originalbitmapImage.value = bp
     }
 
-
-    fun resetBitmapImage(){
-        _bitmapImage.value = null
+    fun setTimer(t : Timer){
+        _timer.value = t
     }
+
+    fun cancelTimer(){
+        _timer.value!!.cancel()
+        _timer.value = null
+    }
+
 }
