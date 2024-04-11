@@ -5,25 +5,37 @@ import android.app.Activity
 import android.app.Instrumentation.ActivityResult
 import android.content.pm.ActivityInfo
 import android.content.pm.PackageManager
+import android.graphics.Bitmap
 import android.graphics.Color
 import android.os.Handler
 import android.os.Looper
+import android.util.Log
+import android.view.View
+import android.widget.ImageView
 import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.camera.core.CameraSelector
+import androidx.camera.lifecycle.ProcessCameraProvider
+import androidx.camera.view.PreviewView
+import androidx.camera.view.transform.ImageProxyTransformFactory
+import androidx.camera.view.transform.OutputTransform
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeContentPadding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
@@ -43,6 +55,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Outline
 import androidx.compose.ui.graphics.RectangleShape
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.painterResource
@@ -52,11 +65,14 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
+import androidx.core.view.setPadding
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
+import com.canhub.cropper.CropImageView
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -66,14 +82,22 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import my.id.jeremia.potholetracker.Extension.dashedBorder
 import my.id.jeremia.potholetracker.R
+import my.id.jeremia.potholetracker.ViewModel.CollabViewModel
 import my.id.jeremia.potholetracker.dataStore
 import my.id.jeremia.potholetracker.ui.theme.PotholeTrackerTheme
+import java.util.Timer
+import java.util.concurrent.TimeUnit
+import kotlin.concurrent.fixedRateTimer
+import kotlin.concurrent.schedule
 
 @Composable
+@androidx.annotation.OptIn(androidx.camera.view.TransformExperimental::class)
 fun CollabScreen(
-    onClickSetting: () -> Unit,
+    onBackPressed: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val viewModel: CollabViewModel = viewModel()
+
     val leftRect = remember {
         mutableIntStateOf(0)
     }
@@ -86,12 +110,23 @@ fun CollabScreen(
     val heightRect = remember {
         mutableIntStateOf(0)
     }
+    val isCameraAccepted = remember {
+        mutableStateOf(false)
+    }
+    val isSettingCamera = remember {
+        mutableStateOf(false)
+    }
 
     val scope = rememberCoroutineScope()
-
-    val isCameraAccepted = remember { mutableStateOf(false) }
-
+    val lifecycleOwner = LocalLifecycleOwner.current
     val context = LocalContext.current
+
+
+    BackHandler {
+        (context as? Activity)?.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
+        onBackPressed()
+    }
+
     val cameraPermissionRequest =
         rememberLauncherForActivityResult(contract = ActivityResultContracts.RequestPermission()) {
             if (it) {
@@ -120,7 +155,6 @@ fun CollabScreen(
 
             }
         }
-
 
         val leftKey = intPreferencesKey("left_rect")
         val topKey = intPreferencesKey("top_rect")
@@ -167,59 +201,227 @@ fun CollabScreen(
 
     }
 
+    LaunchedEffect(Unit) {
+        if (viewModel.bitmapImage.value == null)
+            (context as? Activity)?.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
+    }
+
+
+    val previewView = remember {
+        PreviewView(context).apply {
+            scaleType = PreviewView.ScaleType.FIT_CENTER
+            visibility = View.INVISIBLE
+        }
+    }
+
+    LaunchedEffect(Unit) {
+
+        val cameraProviderFuture = ProcessCameraProvider.getInstance(context)
+
+        cameraProviderFuture.addListener({
+            // Used to bind the lifecycle of cameras to the lifecycle owner
+            val cameraProvider: ProcessCameraProvider = cameraProviderFuture.get()
+
+            val cameraSelector = CameraSelector.DEFAULT_BACK_CAMERA
+
+            val preview = androidx.camera.core.Preview
+                .Builder()
+                .build()
+                .also {
+                    it.setSurfaceProvider(previewView.surfaceProvider)
+                }
+
+            try {
+                // Unbind use cases before rebinding
+                cameraProvider.unbindAll()
+
+                // Bind use cases to camera
+                cameraProvider.bindToLifecycle(
+                    lifecycleOwner, cameraSelector, preview
+                )
+
+
+                fixedRateTimer("preview", false, 0, 1000L) {
+
+                    Handler(Looper.getMainLooper()).post {
+                        val originalbitmap = previewView.bitmap ?: return@post
+
+                        viewModel.setOriginalBitmapImage(originalbitmap)
+
+                        val croppedBitmap:Bitmap
+                        if((widthRect.intValue == 0)&&(heightRect.intValue==0)){
+                            croppedBitmap = originalbitmap
+                        }else{
+                            croppedBitmap = Bitmap.createBitmap(
+                                originalbitmap,
+                                leftRect.intValue,
+                                topRect.intValue,
+                                widthRect.intValue,
+                                heightRect.intValue,
+                            )
+                        }
+
+
+                        viewModel.setBitmapImage(croppedBitmap)
+                    }
+
+                }
+
+            } catch (exc: Exception) {
+                Log.e("InitCamera", "Use case binding failed", exc)
+            }
+
+        }, ContextCompat.getMainExecutor(context))
+
+    }
+
+
+
     Scaffold {
         Column(
             modifier = modifier
                 .fillMaxSize()
                 .padding(paddingValues = it)
-                .padding(20.dp),
+                .padding(10.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center,
         ) {
 
             if (isCameraAccepted.value) {
-                Column(
-                    modifier = modifier
-                        .fillMaxSize()
-                ) {
 
+                if (isSettingCamera.value) {
 
-                    IconButton(
-                        onClick = {
-                            onClickSetting()
-                        },
+                    Row(
                         modifier = modifier
-                            .width(35.dp)
-                            .align(Alignment.End)
+                            .fillMaxSize(),
+                        horizontalArrangement = Arrangement.Center,
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Icon(
-                            painterResource(id = R.drawable.baseline_settings_24),
-                            "Setting Camera",
+                        AndroidView(
+                            factory = {
+                                CropImageView(it).also {
+                                    it.setImageBitmap(viewModel.originalBitmapImage.value!!)
+                                    it.cropRect = it.wholeImageRect
+
+                                    viewModel.setCropRect(it.wholeImageRect!!)
+
+                                    it.setOnCropWindowChangedListener {
+                                        println(it.cropRect)
+                                        it.cropRect?.let { it1 ->
+                                            viewModel.setCropRect(it1)
+                                        }
+                                    }
+
+                                }
+                            },
+                        )
+
+
+                        Button(onClick = {
+
+                            val leftKey = intPreferencesKey("left_rect")
+                            val topKey = intPreferencesKey("top_rect")
+                            val widthKey = intPreferencesKey("width_rect")
+                            val heightKey = intPreferencesKey("height_rect")
+
+                            CoroutineScope(Dispatchers.IO).launch {
+                                context.dataStore.edit { settings ->
+                                    settings[leftKey] = viewModel.cropRect.value!!.left
+                                    settings[topKey] = viewModel.cropRect.value!!.top
+                                    settings[widthKey] = viewModel.cropRect.value!!.width()
+                                    settings[heightKey] = viewModel.cropRect.value!!.height()
+                                }
+
+                                Handler(Looper.getMainLooper()).post {
+                                    Toast.makeText(
+                                        context,
+                                        "Berhasil menyimpan pengaturan",
+                                        Toast.LENGTH_SHORT
+                                    ).show()
+
+                                    (context as? Activity)?.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
+
+                                    onBackPressed()
+
+                                }
+
+
+
+                            }
+
+                            isSettingCamera.value = false
+
+                        }) {
+                            Text("Simpan Pengaturan")
+                        }
+
+                    }
+
+                } else {
+
+                    Row(
+                        modifier = modifier
+                            .fillMaxSize(),
+                        horizontalArrangement = Arrangement.Center,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+
+                        Box(
+                            contentAlignment = Alignment.Center
+                        ) {
+                            AndroidView(
+                                factory = { previewView },
+                                modifier = Modifier
+                                    .defaultMinSize(100.dp, 100.dp)
+                                    .border(1.dp, androidx.compose.ui.graphics.Color.Red)
+                            )
+
+                            if (viewModel.bitmapImage.value != null) {
+                                Image(
+                                    viewModel.bitmapImage.value!!.asImageBitmap(),
+                                    "Current Image"
+                                )
+                            }
+                        }
+
+                        Column(
                             modifier = modifier
                                 .fillMaxSize()
-                        )
+                        ) {
+
+
+                            IconButton(
+                                onClick = {
+                                    isSettingCamera.value = true
+                                },
+                                modifier = modifier
+                                    .width(35.dp)
+                                    .align(Alignment.End)
+                            ) {
+                                Icon(
+                                    painterResource(id = R.drawable.baseline_settings_24),
+                                    "Setting Camera",
+                                    modifier = modifier
+                                        .fillMaxSize()
+                                )
+                            }
+
+
+                            Text(
+                                "Rect :\n" +
+                                        "Left : ${leftRect.value}\n" +
+                                        "Top : ${topRect.value}\n" +
+                                        "Width : ${widthRect.value}\n" +
+                                        "Height : ${heightRect.value}\n"
+                            )
+
+                        }
+
                     }
 
 
-
-
-                    Text(
-                        "Rect :\n" +
-                                "Left : ${leftRect.value}\n" +
-                                "Top : ${topRect.value}\n" +
-                                "Width : ${widthRect.value}\n" +
-                                "Height : ${heightRect.value}\n"
-                    )
-
-
-//                    AndroidView(
-//                        factory = { viewModel.previewView.value!! },
-//                        modifier = Modifier
-//                            .defaultMinSize(100.dp, 100.dp)
-//                            .border(1.dp, androidx.compose.ui.graphics.Color.Red),
-//                    )
-
                 }
+
 
             } else {
                 Text(

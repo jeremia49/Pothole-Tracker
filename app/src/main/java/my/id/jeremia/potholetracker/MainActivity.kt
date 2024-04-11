@@ -86,7 +86,7 @@ fun MyApp(modifier: Modifier = Modifier) {
         }
         composable("collab") {
             CollabScreen({
-                navController.navigate("settingcamera")
+                navController.navigate("home")
             })
         }
         composable("settingcamera"){
