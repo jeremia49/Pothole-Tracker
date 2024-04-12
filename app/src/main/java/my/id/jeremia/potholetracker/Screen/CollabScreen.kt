@@ -1,16 +1,12 @@
 package my.id.jeremia.potholetracker.Screen
 
 import android.Manifest
-import android.app.Activity
-import android.content.pm.ActivityInfo
 import android.content.pm.PackageManager
 import android.content.res.Configuration
 import android.graphics.Bitmap
-import android.graphics.Rect
 import android.os.Handler
 import android.os.Looper
 import android.util.Log
-import android.view.View
 import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -20,9 +16,7 @@ import androidx.camera.core.ImageCapture
 import androidx.camera.core.ImageCaptureException
 import androidx.camera.core.ImageProxy
 import androidx.camera.lifecycle.ProcessCameraProvider
-import androidx.camera.view.PreviewView
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -34,6 +28,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeContentPadding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
@@ -70,10 +66,10 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import my.id.jeremia.potholetracker.Extension.toBitmap
 import my.id.jeremia.potholetracker.R
+import my.id.jeremia.potholetracker.Requests.LocationRequest
 import my.id.jeremia.potholetracker.ViewModel.CollabViewModel
 import my.id.jeremia.potholetracker.dataStore
 import my.id.jeremia.potholetracker.ui.theme.PotholeTrackerTheme
-import java.util.concurrent.Executors
 import kotlin.concurrent.fixedRateTimer
 
 
@@ -100,7 +96,7 @@ fun CollabScreen(
     val heightRect = remember {
         mutableIntStateOf(0)
     }
-    val isCameraAccepted = remember {
+    val isAllPermissionAccepted = remember {
         mutableStateOf(false)
     }
     val isSettingCamera = remember {
@@ -122,30 +118,63 @@ fun CollabScreen(
         onBackPressed()
     }
 
-    val cameraPermissionRequest =
-        rememberLauncherForActivityResult(contract = ActivityResultContracts.RequestPermission()) {
-            isCameraAccepted.value = it
+    val requestAllPermission = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestMultiplePermissions()
+    ) { permissions ->
+
+        var allPermissionAccepted = true
+        for (perm in permissions) {
+            if (!perm.value) {
+                allPermissionAccepted = false
+            }
         }
+
+        if (allPermissionAccepted) {
+            isAllPermissionAccepted.value = true
+        }
+
+    }
+
 
     LaunchedEffect(Unit) {
-        when (PackageManager.PERMISSION_GRANTED) {
-            ContextCompat.checkSelfPermission(
+
+        var locationPerm = false
+        var cameraPerm = false
+
+        if (ContextCompat.checkSelfPermission(
                 context,
                 Manifest.permission.CAMERA
-            ) -> {
-                isCameraAccepted.value = true
-            }
+            ) == PackageManager.PERMISSION_GRANTED
+        ) {
+            cameraPerm = true
+        }
+        if (ContextCompat.checkSelfPermission(
+                context,
+                Manifest.permission.ACCESS_FINE_LOCATION
+            ) == PackageManager.PERMISSION_GRANTED
+        ) {
+            locationPerm = true
+        }
 
-            else -> {
-                isCameraAccepted.value = false
+        if (locationPerm && cameraPerm) {
+            isAllPermissionAccepted.value = true
 
-                scope.launch {
-                    delay(1000L)
-                    cameraPermissionRequest.launch(Manifest.permission.CAMERA)
-                }
+            LocationRequest(context).requestLocationUpdate(viewModel)
+        }
 
+        if (!isAllPermissionAccepted.value) {
+            scope.launch {
+                delay(2000L)
+                requestAllPermission.launch(
+                    arrayOf(
+                        Manifest.permission.CAMERA,
+                        Manifest.permission.ACCESS_FINE_LOCATION,
+                        Manifest.permission.ACCESS_COARSE_LOCATION
+                    )
+                )
             }
         }
+
 
         val leftKey = intPreferencesKey("left_rect")
         val topKey = intPreferencesKey("top_rect")
@@ -202,9 +231,7 @@ fun CollabScreen(
     }
 
 
-    LaunchedEffect(isCameraAccepted, viewModel.orientation) {
-
-        if (!isCameraAccepted.value) return@LaunchedEffect
+    LaunchedEffect(isAllPermissionAccepted, viewModel.orientation) {
 
         val cameraProviderFuture = ProcessCameraProvider.getInstance(context)
 
@@ -306,7 +333,7 @@ fun CollabScreen(
             verticalArrangement = Arrangement.Center,
         ) {
 
-            if (isCameraAccepted.value) {
+            if (isAllPermissionAccepted.value) {
 
                 if (isSettingCamera.value) {
 
@@ -405,9 +432,11 @@ fun CollabScreen(
 
                         }
 
+
                         Column(
                             modifier = modifier
                                 .fillMaxSize()
+                                .verticalScroll(rememberScrollState())
                         ) {
 
                             Row(
@@ -494,12 +523,14 @@ fun CollabScreen(
 
                             )
 
-//                            Button(onClick = {
-//
-//
-//                            }) {
-//                                Text("Process")
-//                            }
+                            Text(
+                                "Location : \n${if (viewModel.locationData.value == null) "Tidak tersedia" 
+                                else "Latitude : ${viewModel.locationData.value!!.latitude}\n" +
+                                        "Longitude : ${viewModel.locationData.value!!.longitude}\n" +
+                                        "Speed : ${viewModel.locationData.value!!.speed}\n" +
+                                        "Accuracy : ${viewModel.locationData.value!!.accuracy}\n" +
+                                        "Speed Accuracy : ${viewModel.locationData.value!!.speedAccuracy}  "}"
+                            )
 
                         }
 
@@ -511,7 +542,7 @@ fun CollabScreen(
 
             } else {
                 Text(
-                    text = "Silahkan perbolehkan akses kamera\nuntuk mengambil gambar.",
+                    text = "Silahkan perbolehkan akses kamera dan lokasi untuk lanjut ke tahap berikutnya",
                     textAlign = TextAlign.Center,
                 )
             }

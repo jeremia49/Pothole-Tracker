@@ -8,27 +8,31 @@ import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
+import my.id.jeremia.potholetracker.Data.LocationData
 import java.util.Timer
 
 class CollabViewModel : ViewModel(){
 
-    val _previewView = mutableStateOf<PreviewView?>(null)
+    private val _previewView = mutableStateOf<PreviewView?>(null)
     val previewView : State<PreviewView?> = _previewView
 
-    val _originalbitmapImage  = mutableStateOf<Bitmap?>(null)
+    private val _originalbitmapImage  = mutableStateOf<Bitmap?>(null)
     val originalBitmapImage : State<Bitmap?> = _originalbitmapImage
 
-    val _bitmapImage  = mutableStateOf<Bitmap?>(null)
+    private val _bitmapImage  = mutableStateOf<Bitmap?>(null)
     val bitmapImage : State<Bitmap?> = _bitmapImage
 
-    val _orientation  = mutableIntStateOf(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT)
+    private val _orientation  = mutableIntStateOf(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT)
     val orientation : State<Int> = _orientation
 
-    val _cropRect = mutableStateOf<Rect?>(null)
+    private val _cropRect = mutableStateOf<Rect?>(null)
     val cropRect : State<Rect?> = _cropRect
 
-    val _timer = mutableStateOf<Timer?>(null)
+    private val _timer = mutableStateOf<Timer?>(null)
     val timer : State<Timer?> = _timer
+
+    val _locationData = mutableStateOf<LocationData?>(null)
+    val locationData : State <LocationData?> = _locationData
 
     fun setPreviewView(p: PreviewView){
         _previewView.value = p
@@ -59,4 +63,7 @@ class CollabViewModel : ViewModel(){
         _timer.value = null
     }
 
+    fun updateLocationData(locationData: LocationData){
+        _locationData.value = locationData
+    }
 }
