@@ -6,6 +6,7 @@ import android.content.pm.ActivityInfo
 import android.content.pm.PackageManager
 import android.content.res.Configuration
 import android.graphics.Bitmap
+import android.graphics.Rect
 import android.os.Handler
 import android.os.Looper
 import android.util.Log
@@ -27,12 +28,14 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.defaultMinSize
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeContentPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
@@ -103,6 +106,9 @@ fun CollabScreen(
     val isSettingCamera = remember {
         mutableStateOf(false)
     }
+    val isRectValid = remember {
+        mutableStateOf(false)
+    }
 
     val scope = rememberCoroutineScope()
     val lifecycleOwner = LocalLifecycleOwner.current
@@ -110,7 +116,6 @@ fun CollabScreen(
 
 
     BackHandler {
-        (context as? Activity)?.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
         if (viewModel.timer.value !== null) {
             viewModel.cancelTimer()
         }
@@ -187,16 +192,11 @@ fun CollabScreen(
 
     }
 
-    LaunchedEffect(Unit) {
-        if (viewModel.bitmapImage.value == null)
-            (context as? Activity)?.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
-    }
-
     viewModel.setOrientation(LocalConfiguration.current.orientation)
 
     val imageCapture = remember {
         ImageCapture.Builder()
-            .setCaptureMode(ImageCapture.CAPTURE_MODE_MINIMIZE_LATENCY)
+            .setCaptureMode(ImageCapture.CAPTURE_MODE_MAXIMIZE_QUALITY)
             .build()
 
     }
@@ -205,7 +205,6 @@ fun CollabScreen(
     LaunchedEffect(isCameraAccepted, viewModel.orientation) {
 
         if (!isCameraAccepted.value) return@LaunchedEffect
-        if (viewModel.orientation.value != Configuration.ORIENTATION_LANDSCAPE) return@LaunchedEffect
 
         val cameraProviderFuture = ProcessCameraProvider.getInstance(context)
 
@@ -215,19 +214,6 @@ fun CollabScreen(
 
             val cameraSelector = CameraSelector.DEFAULT_BACK_CAMERA
 
-            viewModel.setPreviewView(
-                PreviewView(context).apply {
-                    scaleType = PreviewView.ScaleType.FIT_CENTER
-                    visibility = View.INVISIBLE
-                }
-            )
-
-            val preview = androidx.camera.core.Preview
-                .Builder()
-                .build()
-                .also {
-                    it.setSurfaceProvider(viewModel.previewView.value!!.surfaceProvider)
-                }
 
             try {
                 // Unbind use cases before rebinding
@@ -235,9 +221,12 @@ fun CollabScreen(
 
                 // Bind use cases to camera
                 cameraProvider.bindToLifecycle(
-                    lifecycleOwner, cameraSelector, imageCapture, preview,
+                    lifecycleOwner, cameraSelector, imageCapture,
                 )
 
+                if (viewModel.timer.value != null) {
+                    viewModel.cancelTimer()
+                }
                 val timer = fixedRateTimer("preview", false, 0, 1000L) {
 
                     Handler(Looper.getMainLooper()).post {
@@ -256,15 +245,23 @@ fun CollabScreen(
                                 override fun onCaptureSuccess(image: ImageProxy) {
                                     super.onCaptureSuccess(image)
 
-                                    val originalbitmap = image.image!!.toBitmap()
-                                    viewModel.setOriginalBitmapImage(originalbitmap)
+                                    CoroutineScope(Dispatchers.Default).launch {
 
-                                    val croppedBitmap: Bitmap =
-                                        if ((widthRect.intValue == 0) && (heightRect.intValue == 0)) {
-                                            originalbitmap
+                                        val originalbitmap = image.image!!.toBitmap()
+                                        viewModel.setOriginalBitmapImage(originalbitmap)
 
+                                        val croppedBitmap: Bitmap
+                                        if (widthRect.intValue == 0 || heightRect.intValue == 0) {
+                                            isRectValid.value = false
+                                            croppedBitmap =
+                                                originalbitmap.copy(originalbitmap.config, true)
+                                        } else if ((originalbitmap.width < leftRect.intValue + widthRect.intValue) || (originalbitmap.height < topRect.intValue + heightRect.intValue)) {
+                                            isRectValid.value = false
+                                            croppedBitmap =
+                                                originalbitmap.copy(originalbitmap.config, false)
                                         } else {
-                                            Bitmap.createBitmap(
+                                            isRectValid.value = true
+                                            croppedBitmap = Bitmap.createBitmap(
                                                 originalbitmap,
                                                 leftRect.intValue,
                                                 topRect.intValue,
@@ -273,8 +270,12 @@ fun CollabScreen(
                                             )
                                         }
 
-                                    viewModel.setBitmapImage(croppedBitmap)
-                                    image.close()
+                                        viewModel.setBitmapImage(croppedBitmap)
+                                        image.close()
+
+                                    }
+
+
                                 }
                             }
 
@@ -309,11 +310,10 @@ fun CollabScreen(
 
                 if (isSettingCamera.value) {
 
-                    Row(
+                    AutomaticRowColumn(
                         modifier = modifier
                             .fillMaxSize(),
-                        horizontalArrangement = Arrangement.Center,
-                        verticalAlignment = Alignment.CenterVertically
+                        viewModel.orientation.value,
                     ) {
                         AndroidView(
                             factory = {
@@ -324,7 +324,7 @@ fun CollabScreen(
                                     viewModel.setCropRect(it.wholeImageRect!!)
 
                                     it.setOnCropWindowChangedListener {
-                                        println(it.cropRect)
+//                                        println(it.cropRect)
                                         it.cropRect?.let { it1 ->
                                             viewModel.setCropRect(it1)
                                         }
@@ -362,9 +362,6 @@ fun CollabScreen(
                                     ).show()
 
 
-                                    (context as? Activity)?.requestedOrientation =
-                                        ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
-
                                     onBackPressed()
 
                                 }
@@ -382,11 +379,10 @@ fun CollabScreen(
 
                 } else {
 
-                    Row(
+                    AutomaticRowColumn(
                         modifier = modifier
                             .fillMaxSize(),
-                        horizontalArrangement = Arrangement.Center,
-                        verticalAlignment = Alignment.CenterVertically
+                        viewModel.orientation.value
                     ) {
 
                         Box(
@@ -395,19 +391,16 @@ fun CollabScreen(
                             contentAlignment = Alignment.Center
                         ) {
 
-                            if (viewModel.previewView.value !== null) {
-                                AndroidView(
-                                    factory = { viewModel.previewView.value!! },
-                                    modifier = Modifier
-                                        .defaultMinSize(100.dp, 100.dp)
-                                )
-                            }
-
                             if (viewModel.bitmapImage.value != null) {
                                 Image(
                                     viewModel.bitmapImage.value!!.asImageBitmap(),
-                                    "Current Image"
+                                    "Current Image",
+                                    modifier = modifier
+                                        .fillMaxWidth(0.7f)
+                                        .fillMaxHeight(0.7f),
                                 )
+                            } else {
+                                CircularProgressIndicator()
                             }
 
                         }
@@ -449,10 +442,6 @@ fun CollabScreen(
                                                 "Berhasil mereset pengaturan",
                                                 Toast.LENGTH_SHORT
                                             ).show()
-
-
-                                            (context as? Activity)?.requestedOrientation =
-                                                ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
 
                                             onBackPressed()
 
@@ -500,7 +489,9 @@ fun CollabScreen(
                                         "Left : ${leftRect.intValue}\n" +
                                         "Top : ${topRect.intValue}\n" +
                                         "Width : ${widthRect.intValue}\n" +
-                                        "Height : ${heightRect.intValue}\n"
+                                        "Height : ${heightRect.intValue}\n" +
+                                        "Valid : ${isRectValid.value}\n"
+
                             )
 
 //                            Button(onClick = {
@@ -529,6 +520,30 @@ fun CollabScreen(
     }
 
 
+}
+
+@Composable
+fun AutomaticRowColumn(
+    modifier: Modifier = Modifier,
+    orientation: Int,
+    content: @Composable () -> Unit
+) {
+    if (orientation == Configuration.ORIENTATION_LANDSCAPE) {
+        return Row(
+            modifier = modifier,
+            horizontalArrangement = Arrangement.Center,
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            content()
+        }
+    }
+    return Column(
+        modifier = modifier,
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center,
+    ) {
+        content()
+    }
 }
 
 @Preview(showBackground = true)
