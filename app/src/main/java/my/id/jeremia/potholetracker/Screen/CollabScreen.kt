@@ -581,6 +581,17 @@ fun CollabScreen(
 
 
                             Text(
+                                "Location : \n${
+                                    if (viewModel.locationData.value == null) "Tidak tersedia\n"
+                                    else "Latitude : ${viewModel.locationData.value!!.latitude}\n" +
+                                            "Longitude : ${viewModel.locationData.value!!.longitude}\n" +
+                                            "Speed : ${viewModel.locationData.value!!.speed} m/s\n" +
+                                            "Accuracy : ${viewModel.locationData.value!!.accuracy}\n" +
+                                            "Speed Accuracy : ${viewModel.locationData.value!!.speedAccuracy}\n"
+                                }"
+                            )
+
+                            Text(
                                 "Rect :\n" +
                                         "Left : ${leftRect.intValue}\n" +
                                         "Top : ${topRect.intValue}\n" +
@@ -590,16 +601,6 @@ fun CollabScreen(
 
                             )
 
-                            Text(
-                                "Location : \n${
-                                    if (viewModel.locationData.value == null) "Tidak tersedia"
-                                    else "Latitude : ${viewModel.locationData.value!!.latitude}\n" +
-                                            "Longitude : ${viewModel.locationData.value!!.longitude}\n" +
-                                            "Speed : ${viewModel.locationData.value!!.speed}\n" +
-                                            "Accuracy : ${viewModel.locationData.value!!.accuracy}\n" +
-                                            "Speed Accuracy : ${viewModel.locationData.value!!.speedAccuracy}  "
-                                }"
-                            )
 
                         }
 

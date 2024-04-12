@@ -3,9 +3,11 @@ package my.id.jeremia.potholetracker.Screen
 import android.graphics.BitmapFactory
 import android.widget.ImageView
 import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -19,12 +21,14 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.lifecycle.viewmodel.compose.viewModel
 import my.id.jeremia.potholetracker.R
 import my.id.jeremia.potholetracker.ViewModel.InferenceListViewModel
+import my.id.jeremia.potholetracker.utils.timestampToFormattedString
 
 
 @Composable
@@ -79,6 +83,7 @@ fun InferenceListScreen(
                             lat = inferences.value[it].latitude.toString(),
                             long = inferences.value[it].longitude.toString(),
                             filename = inferences.value[it].localImagePath,
+                            timestamp = timestampToFormattedString(inferences.value[it].timestamp),
                             berlubang = if(inferences.value[it].isBerlubang) "Ya" else "Tidak",
                         )
                     }
@@ -102,26 +107,27 @@ fun InferenceItem(
     lat: String,
     long: String,
     filename: String,
+    timestamp:String,
     berlubang: String,
 ) {
     Column(
         modifier = modifier
             .fillMaxWidth()
-            .padding(10.dp)
+            .padding(10.dp),
     ) {
         Text("ID: ${id}")
         Text("Lat: ${lat}")
         Text("Long: ${long}")
-        Text("Filename: ${filename}")
+        Text("Timstamp: ${timestamp}")
         Text("Berlubang: ${berlubang}")
-        AndroidView(
-            factory = {
-                ImageView(it).apply{
-                    val bmImg = BitmapFactory.decodeFile(filename)
-                    this.setImageBitmap(bmImg)
-                }
-            },
-            modifier = modifier,
+        Image(
+            BitmapFactory.decodeFile(filename).asImageBitmap(),
+            "Image Bitmap",
+            modifier=modifier
+                .fillMaxWidth(0.5f)
+                .fillMaxHeight(0.5f)
+                .align(Alignment.CenterHorizontally)
+
         )
     }
 }

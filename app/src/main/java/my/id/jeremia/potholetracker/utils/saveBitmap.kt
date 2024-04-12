@@ -22,7 +22,7 @@ fun saveBitmapToFile(context: Context, bitmap: Bitmap): File? {
         try {
             // Write the bitmap data to the file
             val fos = FileOutputStream(tempFile)
-            bitmap.compress(Bitmap.CompressFormat.PNG, 100, fos)
+            bitmap.compress(Bitmap.CompressFormat.JPEG, 75, fos)
             fos.flush()
             fos.close()
         } catch (e: IOException) {

@@ -17,6 +17,12 @@ abstract class InferenceDataDao {
     @Query("SELECT * From `inference-table`")
     abstract fun getAllInferences() : Flow<List<InferenceData>>
 
+    @Query("SELECT * From `inference-table` WHERE isBerlubang=true")
+    abstract fun getAllJalanBerlubangInferences() : Flow<List<InferenceData>>
+
+    @Query("SELECT * From `inference-table` ORDER BY `timestamp` DESC")
+    abstract fun getAllInferencesSORTED() : Flow<List<InferenceData>>
+
     @Query("SELECT * From `inference-table` WHERE id=:id")
     abstract fun getAnInferenceByID(id:Long) : Flow<InferenceData>
 

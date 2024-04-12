@@ -14,7 +14,10 @@ object Graph {
     }
 
     fun provide(ctx:Context){
-        database = Room.databaseBuilder(ctx, InferenceDatabase::class.java, "inference.db").build()
+        database = Room
+            .databaseBuilder(ctx, InferenceDatabase::class.java, "inference.db")
+            .fallbackToDestructiveMigration()
+            .build()
     }
 
 }

@@ -10,6 +10,9 @@ class InferenceRepository(private val inferenceDataDao: InferenceDataDao) {
 
     fun getAllInferences(): Flow<List<InferenceData>> = inferenceDataDao.getAllInferences()
 
+    fun getAllJalanBerlubangInferences() : Flow<List<InferenceData>> = inferenceDataDao.getAllJalanBerlubangInferences()
+
+    fun getAllInferencesSORTED() : Flow<List<InferenceData>> = inferenceDataDao.getAllInferencesSORTED()
 
     fun getAnInferenceById(id:Long) : Flow<InferenceData> = inferenceDataDao.getAnInferenceByID(id)
 

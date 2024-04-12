@@ -17,7 +17,7 @@ class InferenceListViewModel(
     lateinit var getAllInferences : Flow<List<InferenceData>>
     init{
         viewModelScope.launch{
-            getAllInferences = inferenceRepository.getAllInferences()
+            getAllInferences = inferenceRepository.getAllInferencesSORTED()
         }
     }
 
