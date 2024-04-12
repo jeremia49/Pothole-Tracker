@@ -17,6 +17,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import my.id.jeremia.potholetracker.Screen.CollabScreen
 import my.id.jeremia.potholetracker.Screen.HomeScreen
+import my.id.jeremia.potholetracker.Screen.InferenceListScreen
 import my.id.jeremia.potholetracker.Screen.MapScreen
 import my.id.jeremia.potholetracker.ui.theme.PotholeTrackerTheme
 
@@ -54,6 +55,9 @@ fun MyApp(modifier: Modifier = Modifier) {
                 {
                     navController.navigate("collab")
                 },
+                {
+                    navController.navigate("inferenceList")
+                },
             )
         }
         composable("map") {
@@ -61,6 +65,11 @@ fun MyApp(modifier: Modifier = Modifier) {
         }
         composable("collab") {
             CollabScreen({
+                navController.popBackStack()
+            })
+        }
+        composable("inferenceList") {
+            InferenceListScreen({
                 navController.popBackStack()
             })
         }

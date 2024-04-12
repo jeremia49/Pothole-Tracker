@@ -44,6 +44,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
@@ -64,12 +65,14 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
+import my.id.jeremia.potholetracker.Data.InferenceData
 import my.id.jeremia.potholetracker.Extension.toBitmap
 import my.id.jeremia.potholetracker.R
 import my.id.jeremia.potholetracker.Requests.LocationRequest
 import my.id.jeremia.potholetracker.ViewModel.CollabViewModel
 import my.id.jeremia.potholetracker.dataStore
 import my.id.jeremia.potholetracker.ui.theme.PotholeTrackerTheme
+import my.id.jeremia.potholetracker.utils.saveBitmapToFile
 import kotlin.concurrent.fixedRateTimer
 
 
@@ -300,6 +303,20 @@ fun CollabScreen(
                                         viewModel.setBitmapImage(croppedBitmap)
                                         image.close()
 
+                                        if (viewModel.isInferenceStarted.value) {
+                                            val savedFile = saveBitmapToFile(context, croppedBitmap)
+
+                                            viewModel.addInference(
+                                                inferenceData = InferenceData(
+                                                    viewModel.locationData.value!!.latitude,
+                                                    viewModel.locationData.value!!.longitude,
+                                                    savedFile!!.absolutePath,
+                                                    false,
+                                                )
+                                            )
+                                        }
+
+
                                     }
 
 
@@ -444,6 +461,56 @@ fun CollabScreen(
                                     .fillMaxWidth(),
                                 horizontalArrangement = Arrangement.End,
                             ) {
+                                if (viewModel.isInferenceStarted.value) {
+                                    IconButton(
+                                        onClick = {
+
+                                            viewModel.stopInference()
+
+                                            Handler(Looper.getMainLooper()).post {
+                                                Toast.makeText(
+                                                    context,
+                                                    "Inference dihentikan",
+                                                    Toast.LENGTH_SHORT
+                                                ).show()
+                                            }
+
+                                        }) {
+                                        Icon(
+                                            painterResource(id = R.drawable.baseline_stop_24),
+                                            "Start",
+                                            modifier = modifier
+                                                .fillMaxSize(),
+                                            tint = Color.Red,
+                                        )
+                                    }
+                                } else {
+                                    IconButton(
+                                        enabled =
+                                        (viewModel.bitmapImage.value != null && viewModel.locationData.value != null),
+                                        onClick = {
+
+                                            viewModel.startInference()
+
+                                            Handler(Looper.getMainLooper()).post {
+                                                Toast.makeText(
+                                                    context,
+                                                    "Inference dimulai",
+                                                    Toast.LENGTH_SHORT
+                                                ).show()
+                                            }
+
+                                        }) {
+                                        Icon(
+                                            painterResource(id = R.drawable.baseline_play_arrow_24),
+                                            "Start",
+                                            modifier = modifier
+                                                .fillMaxSize(),
+                                            tint = if(viewModel.bitmapImage.value != null && viewModel.locationData.value != null) Color.Green else Color.Gray,
+                                        )
+                                    }
+                                }
+
 
 
                                 IconButton(onClick = {
@@ -524,12 +591,14 @@ fun CollabScreen(
                             )
 
                             Text(
-                                "Location : \n${if (viewModel.locationData.value == null) "Tidak tersedia" 
-                                else "Latitude : ${viewModel.locationData.value!!.latitude}\n" +
-                                        "Longitude : ${viewModel.locationData.value!!.longitude}\n" +
-                                        "Speed : ${viewModel.locationData.value!!.speed}\n" +
-                                        "Accuracy : ${viewModel.locationData.value!!.accuracy}\n" +
-                                        "Speed Accuracy : ${viewModel.locationData.value!!.speedAccuracy}  "}"
+                                "Location : \n${
+                                    if (viewModel.locationData.value == null) "Tidak tersedia"
+                                    else "Latitude : ${viewModel.locationData.value!!.latitude}\n" +
+                                            "Longitude : ${viewModel.locationData.value!!.longitude}\n" +
+                                            "Speed : ${viewModel.locationData.value!!.speed}\n" +
+                                            "Accuracy : ${viewModel.locationData.value!!.accuracy}\n" +
+                                            "Speed Accuracy : ${viewModel.locationData.value!!.speedAccuracy}  "
+                                }"
                             )
 
                         }

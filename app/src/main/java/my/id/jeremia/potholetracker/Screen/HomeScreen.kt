@@ -25,7 +25,11 @@ import my.id.jeremia.potholetracker.R
 import my.id.jeremia.potholetracker.ui.theme.PotholeTrackerTheme
 
 @Composable
-fun HomeScreen(navMaps:()->Unit, navCollab:()->Unit, modifier: Modifier = Modifier) {
+fun HomeScreen(
+    navMaps:()->Unit,
+    navCollab:()->Unit,
+    navInferenceList:()->Unit,
+    modifier: Modifier = Modifier) {
     Column(
         modifier = modifier
             .fillMaxSize()
@@ -95,6 +99,28 @@ fun HomeScreen(navMaps:()->Unit, navCollab:()->Unit, modifier: Modifier = Modifi
             )
             Text("Kontribusi Pemetaan Jalan Rusak")
         }
+
+        Column(
+            modifier = modifier
+                .weight(1f)
+                .fillMaxSize()
+                .padding(20.dp)
+                .border(width = 1.dp, Color.Black)
+                .clickable {
+                    navInferenceList()
+                },
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
+            Icon(
+                painterResource(id = R.drawable.baseline_photo_camera_back_24),
+                "Home",
+                modifier = modifier
+                    .size(100.dp)
+            )
+            Text("Lihat Histori Inference")
+        }
+
     }
 }
 
@@ -107,7 +133,7 @@ fun GreetingPreview() {
                 .padding(20.dp)
                 .safeContentPadding()
         ) {
-            HomeScreen({},{})
+            HomeScreen({},{},{})
         }
     }
 }
