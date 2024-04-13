@@ -20,6 +20,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ElevatedButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
@@ -90,7 +91,7 @@ fun HomeScreen(
                 .height(200.dp)
                 .fillMaxSize()
                 .padding(20.dp)
-                .border(width = 1.dp, Color.Black)
+                .border(width = 1.dp, MaterialTheme.colorScheme.outline)
                 .clickable {
                     navMaps()
                 },
@@ -115,7 +116,7 @@ fun HomeScreen(
                 .height(200.dp)
                 .fillMaxSize()
                 .padding(20.dp)
-                .border(width = 1.dp, Color.Black)
+                .border(width = 1.dp, MaterialTheme.colorScheme.outline)
                 .clickable {
                     navCollab()
                 },
@@ -137,7 +138,7 @@ fun HomeScreen(
                 .height(200.dp)
                 .fillMaxSize()
                 .padding(20.dp)
-                .border(width = 1.dp, Color.Black)
+                .border(width = 1.dp, MaterialTheme.colorScheme.outline)
                 .clickable {
                     navInferenceList()
                 },

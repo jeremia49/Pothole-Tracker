@@ -7,6 +7,7 @@ import androidx.camera.view.PreviewView
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.Dispatchers
@@ -21,6 +22,9 @@ import java.util.Timer
 class CollabViewModel(
     private val inferenceRepository:InferenceRepository = Graph.inferenceRepository
 ) : ViewModel(){
+    private val _gotLocationUpdate = mutableStateOf<Boolean>(false)
+    val gotLocationUpdate : State<Boolean> = _gotLocationUpdate
+
     private val _isInferenceStarted = mutableStateOf<Boolean>(false)
     val isInferenceStarted : State<Boolean> = _isInferenceStarted
 
@@ -114,4 +118,7 @@ class CollabViewModel(
         _isInferenceStarted.value = false
     }
 
+    fun setGotLocationUpdate(e:Boolean){
+        _gotLocationUpdate.value = e
+    }
 }

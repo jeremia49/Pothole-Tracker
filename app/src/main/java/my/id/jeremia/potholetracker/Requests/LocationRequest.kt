@@ -23,6 +23,8 @@ class LocationRequest(val ctx: Context) {
 
             override fun onLocationResult(locationResult: LocationResult) {
                 super.onLocationResult(locationResult)
+                viewModel.setGotLocationUpdate(true)
+                print("true")
                 locationResult.lastLocation?.let {
                     val locationData =
                         LocationData(
@@ -34,6 +36,8 @@ class LocationRequest(val ctx: Context) {
                         )
                     viewModel.updateLocationData(locationData)
                 }
+
+                print("false")
             }
 
         }

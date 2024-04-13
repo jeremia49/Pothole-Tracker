@@ -31,6 +31,9 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.requiredHeight
+import androidx.compose.foundation.layout.requiredHeightIn
+import androidx.compose.foundation.layout.requiredWidthIn
 import androidx.compose.foundation.layout.safeContentPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
@@ -39,6 +42,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
@@ -104,7 +108,7 @@ fun CollabScreen(
     modifier: Modifier = Modifier,
 ) {
     val viewModel: CollabViewModel = viewModel()
-    val isCameraViewEnabled = remember{
+    val isCameraViewEnabled = remember {
         mutableStateOf(true)
     }
     val leftRect = remember {
@@ -128,10 +132,10 @@ fun CollabScreen(
     val isRectValid = remember {
         mutableStateOf(false)
     }
-    val lastInferenceResult = remember{
+    val lastInferenceResult = remember {
         mutableStateOf("None")
     }
-    val isTakingImage = remember{
+    val isTakingImage = remember {
         mutableStateOf(false)
     }
     val scope = rememberCoroutineScope()
@@ -283,7 +287,7 @@ fun CollabScreen(
                     }
 
                 cameraProvider.bindToLifecycle(
-                    lifecycleOwner, cameraSelector,imageCapture, preview,
+                    lifecycleOwner, cameraSelector, imageCapture, preview,
                 )
 
                 if (viewModel.timer.value != null) {
@@ -358,27 +362,32 @@ fun CollabScreen(
 
                                             var results: MutableList<Classifications>? = null;
 
-                                            if(TFlite.imageClassifier != null){
+                                            if (TFlite.imageClassifier != null) {
 
-                                                    var isBerlubang = false
-                                                    try{
-                                                        results = TFlite.imageClassifier!!.classify(processedTImage)
-                                                        println(results)
-                                                        lastInferenceResult.value = results!![0].categories[0].label + " (" +results!![0].categories[0].score + ")"
-                                                        isBerlubang = results?.get(0)?.categories?.get(0)?.label!!.trim() == "berlubang"
-                                                    }catch(e:Exception){
-                                                        lastInferenceResult.value = "Model Error ! ${e.message}"
-                                                        Log.e("INFERENCE", "${e.message}")
-                                                    }
-
-                                                    viewModel.addInference(
-                                                        inferenceData = InferenceData(
-                                                            viewModel.locationData.value!!.latitude,
-                                                            viewModel.locationData.value!!.longitude,
-                                                            savedFile!!.absolutePath,
-                                                            isBerlubang,
-                                                        )
+                                                var isBerlubang = false
+                                                try {
+                                                    results = TFlite.imageClassifier!!.classify(
+                                                        processedTImage
                                                     )
+                                                    println(results)
+                                                    lastInferenceResult.value =
+                                                        results!![0].categories[0].label + " (" + results!![0].categories[0].score + ")"
+                                                    isBerlubang =
+                                                        results?.get(0)?.categories?.get(0)?.label!!.trim() == "berlubang"
+                                                } catch (e: Exception) {
+                                                    lastInferenceResult.value =
+                                                        "Model Error ! ${e.message}"
+                                                    Log.e("INFERENCE", "${e.message}")
+                                                }
+
+                                                viewModel.addInference(
+                                                    inferenceData = InferenceData(
+                                                        viewModel.locationData.value!!.latitude,
+                                                        viewModel.locationData.value!!.longitude,
+                                                        savedFile!!.absolutePath,
+                                                        isBerlubang,
+                                                    )
+                                                )
 
                                             }
 
@@ -503,11 +512,15 @@ fun CollabScreen(
                             contentAlignment = Alignment.Center
                         ) {
 
-                            Column(){
+                            Column(
+                                modifier = modifier
+                                ) {
+
                                 Row(
+                                    modifier = modifier,
                                     horizontalArrangement = Arrangement.Center,
                                     verticalAlignment = Alignment.CenterVertically,
-                                ){
+                                ) {
                                     Switch(
                                         checked = isCameraViewEnabled.value,
                                         onCheckedChange = {
@@ -518,35 +531,43 @@ fun CollabScreen(
                                 }
 
 
+                                Box(
+                                    contentAlignment = Alignment.Center,
+                                ) {
 
-                                AndroidView(
-                                    factory = { previewView },
-                                    modifier = Modifier
-                                        .defaultMinSize(100.dp, 100.dp)
-                                        .border(1.dp, Color.Red),
-                                    update = {
-                                        if(isCameraViewEnabled.value){
-                                            it.visibility= View.VISIBLE
-                                        }else{
-                                            it.visibility= View.GONE
+                                    AndroidView(
+                                        factory = { previewView },
+                                        modifier = Modifier
+                                            .defaultMinSize(100.dp, 100.dp)
+                                            .align(Alignment.Center),
+                                        update = {
+                                            if (isCameraViewEnabled.value) {
+                                                it.visibility = View.VISIBLE
+                                            } else {
+                                                it.visibility = View.INVISIBLE
+                                            }
+                                        }
+                                    )
+
+
+                                    if (!isCameraViewEnabled.value) {
+                                        if (viewModel.bitmapImage.value != null) {
+                                            Image(
+                                                viewModel.bitmapImage.value!!.asImageBitmap(),
+                                                "Current Image",
+                                                modifier = Modifier
+                                                    .requiredWidthIn(min=250.dp)
+                                                    .requiredHeightIn(min=250.dp)
+                                                    .align(Alignment.Center)
+                                            )
+                                        } else {
+                                            CircularProgressIndicator(
+                                                modifier = Modifier
+                                                    .align(Alignment.Center)
+                                            )
                                         }
                                     }
-                                )
-
-                                if(!isCameraViewEnabled.value){
-                                    if (viewModel.bitmapImage.value != null) {
-                                        Image(
-                                            viewModel.bitmapImage.value!!.asImageBitmap(),
-                                            "Current Image",
-                                            modifier = modifier
-                                                .width(250.dp)
-                                                .height(250.dp)
-                                        )
-                                    } else {
-                                        CircularProgressIndicator()
-                                    }
                                 }
-
 
 
                             }
@@ -564,26 +585,47 @@ fun CollabScreen(
                                 modifier = modifier
                                     .fillMaxWidth(),
                                 horizontalArrangement = Arrangement.SpaceBetween,
-                            ){
+                            ) {
                                 Row(
                                     modifier = modifier,
                                     horizontalArrangement = Arrangement.Start,
                                 ) {
 
-                                    if (isTakingImage.value) {
-                                        IconButton(
-                                            onClick = {},
-                                        ) {
-                                            Icon(
-                                                painterResource(id = R.drawable.baseline_camera_24,),
-                                                "Taking image",
-                                                modifier = modifier
-                                                    .fillMaxSize(),
-                                                tint = if(viewModel.isInferenceStarted.value) Color.Red else Color.Black
-                                            )
-                                        }
 
+                                    IconButton(
+                                        onClick = {},
+                                    ) {
+                                        Icon(
+                                            painterResource(id = R.drawable.baseline_camera_24),
+                                            "Taking image",
+                                            modifier = modifier
+                                                .fillMaxSize(),
+                                            tint = if (isTakingImage.value) Color.Transparent else if (viewModel.isInferenceStarted.value) Color.Red else MaterialTheme.colorScheme.outline
+                                        )
                                     }
+
+                                    IconButton(
+                                        onClick = {},
+                                    ) {
+                                        Icon(
+                                            painterResource(id = R.drawable.baseline_my_location_24),
+                                            "Location Update",
+                                            modifier = modifier
+                                                .fillMaxSize(),
+                                            tint =
+                                            if (!viewModel.gotLocationUpdate.value) Color.Transparent else if (viewModel.isInferenceStarted.value) Color.Red else MaterialTheme.colorScheme.outline
+                                        )
+                                    }
+
+                                    if (viewModel.gotLocationUpdate.value) {
+                                        LaunchedEffect(Unit) {
+                                            scope.launch {
+                                                delay(500)
+                                                viewModel.setGotLocationUpdate(false)
+                                            }
+                                        }
+                                    }
+
                                 }
 
 
@@ -689,6 +731,14 @@ fun CollabScreen(
 
                                     IconButton(
                                         onClick = {
+                                            if(viewModel.originalBitmapImage.value==null){
+                                                Toast.makeText(
+                                                    context,
+                                                    "Silahkan tunggu hingga minimal 1x capture",
+                                                    Toast.LENGTH_SHORT
+                                                ).show()
+                                                return@IconButton;
+                                            }
 
                                             if (viewModel.timer.value !== null) {
                                                 viewModel.cancelTimer()
@@ -716,7 +766,7 @@ fun CollabScreen(
                             Text(
                                 "Last Result : \n${lastInferenceResult.value} \n",
                                 textAlign = TextAlign.Center,
-                                modifier=modifier
+                                modifier = modifier
                                     .fillMaxWidth(),
                             )
 
@@ -725,7 +775,7 @@ fun CollabScreen(
                                     if (viewModel.locationData.value == null) "Tidak tersedia\n"
                                     else "Latitude : ${viewModel.locationData.value!!.latitude}\n" +
                                             "Longitude : ${viewModel.locationData.value!!.longitude}\n" +
-                                            "Speed : ${floor(viewModel.locationData.value!!.speed*3.6)} km/h\n" +
+                                            "Speed : ${floor(viewModel.locationData.value!!.speed * 3.6)} km/h\n" +
                                             "Accuracy : ${viewModel.locationData.value!!.accuracy}\n" +
                                             "Speed Accuracy : ${viewModel.locationData.value!!.speedAccuracy}\n"
                                 }"
