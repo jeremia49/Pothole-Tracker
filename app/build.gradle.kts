@@ -1,3 +1,5 @@
+import com.android.build.api.dsl.AaptOptions
+
 plugins {
     alias(libs.plugins.androidApplication)
     alias(libs.plugins.jetbrainsKotlinAndroid)
@@ -8,6 +10,10 @@ plugins {
 android {
     namespace = "my.id.jeremia.potholetracker"
     compileSdk = 34
+
+    androidResources{
+        noCompress.add("tflite")
+    }
 
     defaultConfig {
         applicationId = "my.id.jeremia.potholetracker"
@@ -42,6 +48,7 @@ android {
         compose = true
         viewBinding = true
         buildConfig = true
+        mlModelBinding = true
     }
     composeOptions {
         kotlinCompilerExtensionVersion = "1.5.1"
@@ -72,11 +79,22 @@ secrets {
 
 dependencies {
 
+//    implementation(libs.tensorflow.lite)
+//    implementation(libs.tensorflow.lite.support)
+//    implementation(libs.tensorflow.lite.metadata)
+    implementation (libs.tensorflow.lite.task.vision.play.services)
+    implementation (libs.play.services.tflite.gpu)
+    implementation(libs.tensorflow.lite.gpu)
+
+//    implementation (libs.tensorflow.lite.gpu.delegate.plugin)
+//    implementation(libs.tensorflow.lite.task.vision)
+
     implementation(libs.play.services.maps)
-    implementation ("com.google.maps.android:maps-compose:4.3.3")
+    implementation (libs.maps.compose)
 
     implementation(libs.androidx.room.runtime)
     implementation(libs.androidx.room.ktx)
+
     ksp(libs.androidx.room.compiler)
     annotationProcessor(libs.androidx.room.compiler)
 

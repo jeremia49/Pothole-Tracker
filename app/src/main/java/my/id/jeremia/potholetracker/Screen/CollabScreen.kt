@@ -1,6 +1,7 @@
 package my.id.jeremia.potholetracker.Screen
 
 import android.Manifest
+import android.R.attr.bitmap
 import android.content.pm.PackageManager
 import android.content.res.Configuration
 import android.graphics.Bitmap
@@ -65,15 +66,27 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import my.id.jeremia.potholetracker.Data.InferenceData
 import my.id.jeremia.potholetracker.Extension.toBitmap
 import my.id.jeremia.potholetracker.R
 import my.id.jeremia.potholetracker.Requests.LocationRequest
+import my.id.jeremia.potholetracker.Tensorflow.RescaleOp
+import my.id.jeremia.potholetracker.Tensorflow.TFlite
 import my.id.jeremia.potholetracker.ViewModel.CollabViewModel
 import my.id.jeremia.potholetracker.dataStore
 import my.id.jeremia.potholetracker.ui.theme.PotholeTrackerTheme
 import my.id.jeremia.potholetracker.utils.saveBitmapToFile
+import org.tensorflow.lite.DataType
+import org.tensorflow.lite.support.common.ops.CastOp
+import org.tensorflow.lite.support.common.ops.NormalizeOp
+import org.tensorflow.lite.support.image.ImageProcessor
+import org.tensorflow.lite.support.image.TensorImage
+import org.tensorflow.lite.support.image.ops.ResizeOp
+import org.tensorflow.lite.support.image.ops.ResizeWithCropOrPadOp
+import org.tensorflow.lite.task.gms.vision.classifier.Classifications
 import kotlin.concurrent.fixedRateTimer
+import kotlin.math.floor
 
 
 @Composable
@@ -108,11 +121,13 @@ fun CollabScreen(
     val isRectValid = remember {
         mutableStateOf(false)
     }
+    val lastInferenceResult = remember{
+        mutableStateOf("None")
+    }
 
     val scope = rememberCoroutineScope()
     val lifecycleOwner = LocalLifecycleOwner.current
     val context = LocalContext.current
-
 
     BackHandler {
         if (viewModel.timer.value !== null) {
@@ -134,6 +149,7 @@ fun CollabScreen(
 
         if (allPermissionAccepted) {
             isAllPermissionAccepted.value = true
+            LocationRequest(context).requestLocationUpdate(viewModel)
         }
 
     }
@@ -161,7 +177,6 @@ fun CollabScreen(
 
         if (locationPerm && cameraPerm) {
             isAllPermissionAccepted.value = true
-
             LocationRequest(context).requestLocationUpdate(viewModel)
         }
 
@@ -244,7 +259,6 @@ fun CollabScreen(
 
             val cameraSelector = CameraSelector.DEFAULT_BACK_CAMERA
 
-
             try {
                 // Unbind use cases before rebinding
                 cameraProvider.unbindAll()
@@ -257,7 +271,8 @@ fun CollabScreen(
                 if (viewModel.timer.value != null) {
                     viewModel.cancelTimer()
                 }
-                val timer = fixedRateTimer("preview", false, 0, 1000L) {
+
+                val timer = fixedRateTimer("capture", false, 0, 2000L) {
 
                     Handler(Looper.getMainLooper()).post {
 
@@ -306,14 +321,49 @@ fun CollabScreen(
                                         if (viewModel.isInferenceStarted.value) {
                                             val savedFile = saveBitmapToFile(context, croppedBitmap)
 
-                                            viewModel.addInference(
-                                                inferenceData = InferenceData(
-                                                    viewModel.locationData.value!!.latitude,
-                                                    viewModel.locationData.value!!.longitude,
-                                                    savedFile!!.absolutePath,
-                                                    false,
-                                                )
-                                            )
+                                            val imageProcessor: ImageProcessor =
+                                                ImageProcessor.Builder()
+                                                    .add(
+                                                        ResizeWithCropOrPadOp(448, 448),
+                                                    )
+                                                    .add(
+                                                        RescaleOp(),
+                                                    )
+                                                    .build()
+
+                                            val timage = TensorImage(DataType.FLOAT32)
+                                            timage.load(croppedBitmap)
+
+                                            val processedTImage = imageProcessor.process(timage);
+
+                                            println(processedTImage.tensorBuffer.floatArray.take(50))
+
+                                            var results: MutableList<Classifications>? = null;
+
+                                            if(TFlite.imageClassifier != null){
+
+                                                    var isBerlubang = false
+                                                    try{
+                                                        results = TFlite.imageClassifier!!.classify(processedTImage)
+                                                        println(results)
+                                                        lastInferenceResult.value = results!![0].categories[0].label + " (" +results!![0].categories[0].score + ")"
+                                                        isBerlubang = results?.get(0)?.categories?.get(0)?.label!!.trim() == "berlubang"
+                                                    }catch(e:Exception){
+                                                        lastInferenceResult.value = "Model Error ! ${e.message}"
+                                                        Log.e("INFERENCE", "${e.message}")
+                                                    }
+
+                                                    viewModel.addInference(
+                                                        inferenceData = InferenceData(
+                                                            viewModel.locationData.value!!.latitude,
+                                                            viewModel.locationData.value!!.longitude,
+                                                            savedFile!!.absolutePath,
+                                                            isBerlubang,
+                                                        )
+                                                    )
+
+                                            }
+
                                         }
 
 
@@ -506,7 +556,7 @@ fun CollabScreen(
                                             "Start",
                                             modifier = modifier
                                                 .fillMaxSize(),
-                                            tint = if(viewModel.bitmapImage.value != null && viewModel.locationData.value != null) Color.Green else Color.Gray,
+                                            tint = if (viewModel.bitmapImage.value != null && viewModel.locationData.value != null) Color.Green else Color.Gray,
                                         )
                                     }
                                 }
@@ -579,13 +629,19 @@ fun CollabScreen(
 
                             }
 
+                            Text(
+                                "Last Result : \n${lastInferenceResult.value} \n",
+                                textAlign = TextAlign.Center,
+                                modifier=modifier
+                                    .fillMaxWidth(),
+                            )
 
                             Text(
                                 "Location : \n${
                                     if (viewModel.locationData.value == null) "Tidak tersedia\n"
                                     else "Latitude : ${viewModel.locationData.value!!.latitude}\n" +
                                             "Longitude : ${viewModel.locationData.value!!.longitude}\n" +
-                                            "Speed : ${viewModel.locationData.value!!.speed} m/s\n" +
+                                            "Speed : ${floor(viewModel.locationData.value!!.speed*3.6)} km/h\n" +
                                             "Accuracy : ${viewModel.locationData.value!!.accuracy}\n" +
                                             "Speed Accuracy : ${viewModel.locationData.value!!.speedAccuracy}\n"
                                 }"

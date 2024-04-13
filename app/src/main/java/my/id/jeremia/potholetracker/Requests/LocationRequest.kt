@@ -39,8 +39,8 @@ class LocationRequest(val ctx: Context) {
         }
 
         val locationRequest = LocationRequest
-            .Builder(Priority.PRIORITY_HIGH_ACCURACY, 500)
-            .setMinUpdateIntervalMillis(300)
+            .Builder(Priority.PRIORITY_HIGH_ACCURACY, 1000)
+            .setMinUpdateIntervalMillis(900)
             .build()
 
         _fusedLocationClient.requestLocationUpdates(locationRequest,locationCallback, Looper.getMainLooper())

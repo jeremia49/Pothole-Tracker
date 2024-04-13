@@ -8,7 +8,7 @@ import my.id.jeremia.potholetracker.Data.InferenceRepository
 object Graph {
 
     lateinit var database : InferenceDatabase
-
+    
     val inferenceRepository by lazy{
         InferenceRepository(inferenceDataDao = database.inferenceDataDao())
     }
