@@ -84,7 +84,8 @@ fun InferenceListScreen(
                             long = inferences.value[it].longitude.toString(),
                             filename = inferences.value[it].localImagePath,
                             timestamp = timestampToFormattedString(inferences.value[it].timestamp),
-                            berlubang = if(inferences.value[it].isBerlubang) "Ya" else "Tidak",
+                            berlubang = inferences.value[it].status,
+                            conf = inferences.value[it].confidence.toString(),
                         )
                     }
                 }
@@ -109,6 +110,7 @@ fun InferenceItem(
     filename: String,
     timestamp:String,
     berlubang: String,
+    conf:String,
 ) {
     Column(
         modifier = modifier
@@ -119,7 +121,8 @@ fun InferenceItem(
         Text("Lat: ${lat}")
         Text("Long: ${long}")
         Text("Timstamp: ${timestamp}")
-        Text("Berlubang: ${berlubang}")
+        Text("Status: ${berlubang}")
+        Text("Confidence: ${conf}")
         Image(
             BitmapFactory.decodeFile(filename).asImageBitmap(),
             "Image Bitmap",

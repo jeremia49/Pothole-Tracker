@@ -20,8 +20,11 @@ data class InferenceData(
     @ColumnInfo(name="localImagePath")
     val localImagePath : String,
 
-    @ColumnInfo(name="isBerlubang")
-    val isBerlubang : Boolean=false,
+    @ColumnInfo(name="status")
+    val status : String = "",
+
+    @ColumnInfo(name="confidence")
+    val confidence : Float = 0f,
 
     @ColumnInfo(name="timestamp")
     val timestamp : Long =  System.currentTimeMillis(),

@@ -6,7 +6,7 @@ import androidx.room.RoomDatabase
 
 @Database(
     entities = [InferenceData::class],
-    version = 2,
+    version = 4,
     exportSchema = false,
 )
 

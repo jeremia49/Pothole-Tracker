@@ -363,8 +363,8 @@ fun CollabScreen(
                                             var results: MutableList<Classifications>? = null;
 
                                             if (TFlite.imageClassifier != null) {
-
-                                                var isBerlubang = false
+                                                var confidence = 0f
+                                                var status = ""
                                                 try {
                                                     results = TFlite.imageClassifier!!.classify(
                                                         processedTImage
@@ -372,8 +372,9 @@ fun CollabScreen(
                                                     println(results)
                                                     lastInferenceResult.value =
                                                         results!![0].categories[0].label + " (" + results!![0].categories[0].score + ")"
-                                                    isBerlubang =
-                                                        results?.get(0)?.categories?.get(0)?.label!!.trim() == "berlubang"
+                                                    status =
+                                                        results?.get(0)?.categories?.get(0)?.label!!.trim()
+                                                    confidence = results!![0].categories[0].score
                                                 } catch (e: Exception) {
                                                     lastInferenceResult.value =
                                                         "Model Error ! ${e.message}"
@@ -385,7 +386,8 @@ fun CollabScreen(
                                                         viewModel.locationData.value!!.latitude,
                                                         viewModel.locationData.value!!.longitude,
                                                         savedFile!!.absolutePath,
-                                                        isBerlubang,
+                                                        status,
+                                                        confidence
                                                     )
                                                 )
 
