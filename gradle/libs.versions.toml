@@ -30,6 +30,7 @@ tensorflowLite = "2.15.0"
 
 playServicesTfliteGpu = "16.1.0"
 tensorflowLiteTaskVisionPlayServices = "0.4.2"
+zip4j = "2.11.5"
 
 [libraries]
 android-image-cropper = { module = "com.vanniktech:android-image-cropper", version.ref = "androidImageCropper" }
@@ -74,6 +75,7 @@ tensorflow-lite-support = { module = "org.tensorflow:tensorflow-lite-support", v
 tensorflow-lite-task-vision = { group = "org.tensorflow", name = "tensorflow-lite-task-vision", version.ref = "tensorflowLiteTaskVision" }
 tensorflow-lite = { group = "org.tensorflow", name = "tensorflow-lite", version.ref = "tensorflowLite" }
 tensorflow-lite-task-vision-play-services = { module = "org.tensorflow:tensorflow-lite-task-vision-play-services", version.ref = "tensorflowLiteTaskVisionPlayServices" }
+zip4j = { group = "net.lingala.zip4j", name = "zip4j", version.ref = "zip4j" }
 
 [plugins]
 androidApplication = { id = "com.android.application", version.ref = "agp" }

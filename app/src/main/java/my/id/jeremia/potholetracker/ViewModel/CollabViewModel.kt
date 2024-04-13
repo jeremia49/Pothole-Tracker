@@ -24,9 +24,6 @@ class CollabViewModel(
     private val _isInferenceStarted = mutableStateOf<Boolean>(false)
     val isInferenceStarted : State<Boolean> = _isInferenceStarted
 
-    private val _previewView = mutableStateOf<PreviewView?>(null)
-    val previewView : State<PreviewView?> = _previewView
-
     private val _originalbitmapImage  = mutableStateOf<Bitmap?>(null)
     val originalBitmapImage : State<Bitmap?> = _originalbitmapImage
 
@@ -80,10 +77,6 @@ class CollabViewModel(
         }
     }
 
-
-    fun setPreviewView(p: PreviewView){
-        _previewView.value = p
-    }
 
     fun setCropRect(r: Rect){
         _cropRect.value = r

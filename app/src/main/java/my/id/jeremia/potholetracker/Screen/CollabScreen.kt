@@ -8,6 +8,7 @@ import android.graphics.Bitmap
 import android.os.Handler
 import android.os.Looper
 import android.util.Log
+import android.view.View
 import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -17,7 +18,9 @@ import androidx.camera.core.ImageCapture
 import androidx.camera.core.ImageCaptureException
 import androidx.camera.core.ImageProxy
 import androidx.camera.lifecycle.ProcessCameraProvider
+import androidx.camera.view.PreviewView
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -26,6 +29,7 @@ import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeContentPadding
 import androidx.compose.foundation.layout.width
@@ -36,6 +40,7 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -99,7 +104,9 @@ fun CollabScreen(
     modifier: Modifier = Modifier,
 ) {
     val viewModel: CollabViewModel = viewModel()
-
+    val isCameraViewEnabled = remember{
+        mutableStateOf(true)
+    }
     val leftRect = remember {
         mutableIntStateOf(0)
     }
@@ -124,7 +131,9 @@ fun CollabScreen(
     val lastInferenceResult = remember{
         mutableStateOf("None")
     }
-
+    val isTakingImage = remember{
+        mutableStateOf(false)
+    }
     val scope = rememberCoroutineScope()
     val lifecycleOwner = LocalLifecycleOwner.current
     val context = LocalContext.current
@@ -248,24 +257,33 @@ fun CollabScreen(
 
     }
 
+    val previewView = remember {
+        PreviewView(context).apply {
+            scaleType = PreviewView.ScaleType.FIT_CENTER
+        }
+    }
 
     LaunchedEffect(isAllPermissionAccepted, viewModel.orientation) {
 
         val cameraProviderFuture = ProcessCameraProvider.getInstance(context)
 
         cameraProviderFuture.addListener({
-            // Used to bind the lifecycle of cameras to the lifecycle owner
             val cameraProvider: ProcessCameraProvider = cameraProviderFuture.get()
 
             val cameraSelector = CameraSelector.DEFAULT_BACK_CAMERA
 
             try {
-                // Unbind use cases before rebinding
                 cameraProvider.unbindAll()
 
-                // Bind use cases to camera
+                val preview = androidx.camera.core.Preview
+                    .Builder()
+                    .build()
+                    .also {
+                        it.setSurfaceProvider(previewView.surfaceProvider)
+                    }
+
                 cameraProvider.bindToLifecycle(
-                    lifecycleOwner, cameraSelector, imageCapture,
+                    lifecycleOwner, cameraSelector,imageCapture, preview,
                 )
 
                 if (viewModel.timer.value != null) {
@@ -275,7 +293,7 @@ fun CollabScreen(
                 val timer = fixedRateTimer("capture", false, 0, 2000L) {
 
                     Handler(Looper.getMainLooper()).post {
-
+                        isTakingImage.value = true
                         imageCapture.takePicture(
                             ContextCompat.getMainExecutor(context),
                             object : ImageCapture.OnImageCapturedCallback() {
@@ -285,10 +303,12 @@ fun CollabScreen(
                                         "Photo capture failed: ${exc.message}",
                                         exc
                                     )
+                                    isTakingImage.value = false
                                 }
 
                                 override fun onCaptureSuccess(image: ImageProxy) {
                                     super.onCaptureSuccess(image)
+                                    isTakingImage.value = false
 
                                     CoroutineScope(Dispatchers.Default).launch {
 
@@ -335,8 +355,6 @@ fun CollabScreen(
                                             timage.load(croppedBitmap)
 
                                             val processedTImage = imageProcessor.process(timage);
-
-                                            println(processedTImage.tensorBuffer.floatArray.take(50))
 
                                             var results: MutableList<Classifications>? = null;
 
@@ -485,17 +503,54 @@ fun CollabScreen(
                             contentAlignment = Alignment.Center
                         ) {
 
-                            if (viewModel.bitmapImage.value != null) {
-                                Image(
-                                    viewModel.bitmapImage.value!!.asImageBitmap(),
-                                    "Current Image",
-                                    modifier = modifier
-                                        .fillMaxWidth(0.7f)
-                                        .fillMaxHeight(0.7f),
+                            Column(){
+                                Row(
+                                    horizontalArrangement = Arrangement.Center,
+                                    verticalAlignment = Alignment.CenterVertically,
+                                ){
+                                    Switch(
+                                        checked = isCameraViewEnabled.value,
+                                        onCheckedChange = {
+                                            isCameraViewEnabled.value = !isCameraViewEnabled.value
+                                        }
+                                    )
+                                    Text("Camera Preview")
+                                }
+
+
+
+                                AndroidView(
+                                    factory = { previewView },
+                                    modifier = Modifier
+                                        .defaultMinSize(100.dp, 100.dp)
+                                        .border(1.dp, Color.Red),
+                                    update = {
+                                        if(isCameraViewEnabled.value){
+                                            it.visibility= View.VISIBLE
+                                        }else{
+                                            it.visibility= View.GONE
+                                        }
+                                    }
                                 )
-                            } else {
-                                CircularProgressIndicator()
+
+                                if(!isCameraViewEnabled.value){
+                                    if (viewModel.bitmapImage.value != null) {
+                                        Image(
+                                            viewModel.bitmapImage.value!!.asImageBitmap(),
+                                            "Current Image",
+                                            modifier = modifier
+                                                .width(250.dp)
+                                                .height(250.dp)
+                                        )
+                                    } else {
+                                        CircularProgressIndicator()
+                                    }
+                                }
+
+
+
                             }
+
 
                         }
 
@@ -505,125 +560,154 @@ fun CollabScreen(
                                 .fillMaxSize()
                                 .verticalScroll(rememberScrollState())
                         ) {
-
                             Row(
                                 modifier = modifier
                                     .fillMaxWidth(),
-                                horizontalArrangement = Arrangement.End,
-                            ) {
-                                if (viewModel.isInferenceStarted.value) {
-                                    IconButton(
-                                        onClick = {
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                            ){
+                                Row(
+                                    modifier = modifier,
+                                    horizontalArrangement = Arrangement.Start,
+                                ) {
 
-                                            viewModel.stopInference()
+                                    if (isTakingImage.value) {
+                                        IconButton(
+                                            onClick = {},
+                                        ) {
+                                            Icon(
+                                                painterResource(id = R.drawable.baseline_camera_24,),
+                                                "Taking image",
+                                                modifier = modifier
+                                                    .fillMaxSize(),
+                                                tint = if(viewModel.isInferenceStarted.value) Color.Red else Color.Black
+                                            )
+                                        }
 
-                                            Handler(Looper.getMainLooper()).post {
-                                                Toast.makeText(
-                                                    context,
-                                                    "Inference dihentikan",
-                                                    Toast.LENGTH_SHORT
-                                                ).show()
-                                            }
-
-                                        }) {
-                                        Icon(
-                                            painterResource(id = R.drawable.baseline_stop_24),
-                                            "Start",
-                                            modifier = modifier
-                                                .fillMaxSize(),
-                                            tint = Color.Red,
-                                        )
-                                    }
-                                } else {
-                                    IconButton(
-                                        enabled =
-                                        (viewModel.bitmapImage.value != null && viewModel.locationData.value != null),
-                                        onClick = {
-
-                                            viewModel.startInference()
-
-                                            Handler(Looper.getMainLooper()).post {
-                                                Toast.makeText(
-                                                    context,
-                                                    "Inference dimulai",
-                                                    Toast.LENGTH_SHORT
-                                                ).show()
-                                            }
-
-                                        }) {
-                                        Icon(
-                                            painterResource(id = R.drawable.baseline_play_arrow_24),
-                                            "Start",
-                                            modifier = modifier
-                                                .fillMaxSize(),
-                                            tint = if (viewModel.bitmapImage.value != null && viewModel.locationData.value != null) Color.Green else Color.Gray,
-                                        )
                                     }
                                 }
 
 
+                                Row(
+                                    modifier = modifier,
+                                    horizontalArrangement = Arrangement.End,
+                                ) {
 
-                                IconButton(onClick = {
+                                    if (viewModel.isInferenceStarted.value) {
+                                        IconButton(
+                                            onClick = {
 
-                                    if (viewModel.timer.value !== null) {
-                                        viewModel.cancelTimer()
+                                                viewModel.stopInference()
+
+                                                Handler(Looper.getMainLooper()).post {
+                                                    Toast.makeText(
+                                                        context,
+                                                        "Inference dihentikan",
+                                                        Toast.LENGTH_SHORT
+                                                    ).show()
+                                                }
+
+                                            }) {
+                                            Icon(
+                                                painterResource(id = R.drawable.baseline_stop_24),
+                                                "Start",
+                                                modifier = modifier
+                                                    .fillMaxSize(),
+                                                tint = Color.Red,
+                                            )
+                                        }
+                                    } else {
+                                        IconButton(
+                                            enabled =
+                                            (viewModel.bitmapImage.value != null && viewModel.locationData.value != null),
+                                            onClick = {
+
+                                                viewModel.startInference()
+
+                                                Handler(Looper.getMainLooper()).post {
+                                                    Toast.makeText(
+                                                        context,
+                                                        "Inference dimulai",
+                                                        Toast.LENGTH_SHORT
+                                                    ).show()
+                                                }
+
+                                            }) {
+                                            Icon(
+                                                painterResource(id = R.drawable.baseline_play_arrow_24),
+                                                "Start",
+                                                modifier = modifier
+                                                    .fillMaxSize(),
+                                                tint = if (viewModel.bitmapImage.value != null && viewModel.locationData.value != null) Color.Green else Color.Gray,
+                                            )
+                                        }
                                     }
 
-                                    val leftKey = intPreferencesKey("left_rect")
-                                    val topKey = intPreferencesKey("top_rect")
-                                    val widthKey = intPreferencesKey("width_rect")
-                                    val heightKey = intPreferencesKey("height_rect")
-
-                                    CoroutineScope(Dispatchers.IO).launch {
-                                        context.dataStore.edit { settings ->
-                                            settings[leftKey] = 0
-                                            settings[topKey] = 0
-                                            settings[widthKey] = 0
-                                            settings[heightKey] = 0
-                                        }
-
-                                        Handler(Looper.getMainLooper()).post {
-                                            Toast.makeText(
-                                                context,
-                                                "Berhasil mereset pengaturan",
-                                                Toast.LENGTH_SHORT
-                                            ).show()
-
-                                            onBackPressed()
-
-                                        }
 
 
-                                    }
-
-                                }) {
-                                    Icon(
-                                        painterResource(id = R.drawable.baseline_delete_24),
-                                        "Reset Camera",
-                                        modifier = modifier
-                                            .fillMaxSize()
-                                    )
-                                }
-
-
-                                IconButton(
-                                    onClick = {
+                                    IconButton(onClick = {
 
                                         if (viewModel.timer.value !== null) {
                                             viewModel.cancelTimer()
                                         }
 
-                                        isSettingCamera.value = true
-                                    },
-                                    modifier = modifier
-                                        .width(35.dp)
-                                ) {
-                                    Icon(
-                                        painterResource(id = R.drawable.baseline_settings_24),
-                                        "Setting Camera",
+                                        val leftKey = intPreferencesKey("left_rect")
+                                        val topKey = intPreferencesKey("top_rect")
+                                        val widthKey = intPreferencesKey("width_rect")
+                                        val heightKey = intPreferencesKey("height_rect")
+
+                                        CoroutineScope(Dispatchers.IO).launch {
+                                            context.dataStore.edit { settings ->
+                                                settings[leftKey] = 0
+                                                settings[topKey] = 0
+                                                settings[widthKey] = 0
+                                                settings[heightKey] = 0
+                                            }
+
+                                            Handler(Looper.getMainLooper()).post {
+                                                Toast.makeText(
+                                                    context,
+                                                    "Berhasil mereset pengaturan",
+                                                    Toast.LENGTH_SHORT
+                                                ).show()
+
+                                                onBackPressed()
+
+                                            }
+
+
+                                        }
+
+                                    }) {
+                                        Icon(
+                                            painterResource(id = R.drawable.baseline_delete_24),
+                                            "Reset Camera",
+                                            modifier = modifier
+                                                .fillMaxSize()
+                                        )
+                                    }
+
+
+                                    IconButton(
+                                        onClick = {
+
+                                            if (viewModel.timer.value !== null) {
+                                                viewModel.cancelTimer()
+                                            }
+
+                                            isSettingCamera.value = true
+                                        },
                                         modifier = modifier
-                                            .fillMaxSize()
-                                    )
+                                            .width(35.dp)
+                                    ) {
+                                        Icon(
+                                            painterResource(id = R.drawable.baseline_settings_24),
+                                            "Setting Camera",
+                                            modifier = modifier
+                                                .fillMaxSize()
+                                        )
+                                    }
+
+
                                 }
 
 
