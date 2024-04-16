@@ -40,7 +40,8 @@ fun MapScreen(modifier: Modifier = Modifier) {
         Box(
             modifier = modifier
                 .padding(it)
-                .fillMaxSize()
+                .fillMaxSize(),
+            contentAlignment = Alignment.Center,
         ) {
 
             val simalungun = LatLng(2.964283004846631, 99.0595995064405)
@@ -66,7 +67,9 @@ fun MapScreen(modifier: Modifier = Modifier) {
                     )
 
                 }
+
             }
+
         }
     }
 }

@@ -30,12 +30,18 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.LifecycleCoroutineScope
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import my.id.jeremia.potholetracker.Graph
 import my.id.jeremia.potholetracker.R
 import my.id.jeremia.potholetracker.ui.theme.PotholeTrackerTheme
@@ -46,6 +52,9 @@ fun HomeScreen(
     navCollab:()->Unit,
     navInferenceList:()->Unit,
     modifier: Modifier = Modifier) {
+
+    val lifecycleOwner = LocalLifecycleOwner.current
+    val lifecycleScope = lifecycleOwner.lifecycleScope
 
     val isBackupLoading = remember{
         mutableStateOf(false)
@@ -161,23 +170,26 @@ fun HomeScreen(
         }else{
 
             ElevatedButton(onClick = {
-                isBackupLoading.value=true
-                if(
-                    Graph.backupDatabase(context = context) == 0
-                ){
-                    Toast.makeText(
-                        context,
-                        "Berhasil backup database",
-                        Toast.LENGTH_SHORT
-                    ).show()
-                }else{
-                    Toast.makeText(
-                        context,
-                        "Gagal backup database",
-                        Toast.LENGTH_SHORT
-                    ).show()
+                lifecycleScope.launch{
+                    isBackupLoading.value=true
+                    delay(1000)
+                    if(
+                        Graph.backupDatabase(context = context) == 0
+                    ){
+                        Toast.makeText(
+                            context,
+                            "Berhasil backup database",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    }else{
+                        Toast.makeText(
+                            context,
+                            "Gagal backup database",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    }
+                    isBackupLoading.value=false
                 }
-                isBackupLoading.value=false
             },
                 modifier=modifier
                     .width(300.dp)
