@@ -1,5 +1,7 @@
 package my.id.jeremia.potholetracker.Screen
 
+import android.os.Handler
+import android.os.Looper
 import android.widget.Toast
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -39,6 +41,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.LifecycleCoroutineScope
 import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -48,15 +51,16 @@ import my.id.jeremia.potholetracker.ui.theme.PotholeTrackerTheme
 
 @Composable
 fun HomeScreen(
-    navMaps:()->Unit,
-    navCollab:()->Unit,
-    navInferenceList:()->Unit,
-    modifier: Modifier = Modifier) {
+    navMaps: () -> Unit,
+    navCollab: () -> Unit,
+    navInferenceList: () -> Unit,
+    modifier: Modifier = Modifier
+) {
 
     val lifecycleOwner = LocalLifecycleOwner.current
     val lifecycleScope = lifecycleOwner.lifecycleScope
 
-    val isBackupLoading = remember{
+    val isBackupLoading = remember {
         mutableStateOf(false)
     }
 
@@ -81,7 +85,7 @@ fun HomeScreen(
                 fontSize = 24.sp,
                 fontFamily = FontFamily.Serif,
                 textAlign = TextAlign.Start,
-                modifier=modifier
+                modifier = modifier
                     .fillMaxWidth()
             )
 
@@ -89,7 +93,7 @@ fun HomeScreen(
                 "Silahkan pilih task berikut :",
                 fontSize = 16.sp,
                 textAlign = TextAlign.Start,
-                modifier=modifier
+                modifier = modifier
                     .fillMaxWidth()
             )
         }
@@ -163,35 +167,40 @@ fun HomeScreen(
             Text("Lihat Histori Inference")
         }
 
-        if(isBackupLoading.value){
+        if (isBackupLoading.value) {
 
             CircularProgressIndicator()
 
-        }else{
+        } else {
 
-            ElevatedButton(onClick = {
-                lifecycleScope.launch{
-                    isBackupLoading.value=true
-                    delay(1000)
-                    if(
-                        Graph.backupDatabase(context = context) == 0
-                    ){
-                        Toast.makeText(
-                            context,
-                            "Berhasil backup database",
-                            Toast.LENGTH_SHORT
-                        ).show()
-                    }else{
-                        Toast.makeText(
-                            context,
-                            "Gagal backup database",
-                            Toast.LENGTH_SHORT
-                        ).show()
+            ElevatedButton(
+                onClick = {
+                    lifecycleScope.launch(Dispatchers.IO) {
+                        isBackupLoading.value = true
+                        delay(1000)
+                        if (
+                            Graph.backupDatabase(context = context) == 0
+                        ) {
+                            Handler(Looper.getMainLooper()).post {
+                                Toast.makeText(
+                                    context,
+                                    "Berhasil backup database",
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                            }
+                        } else {
+                            Handler(Looper.getMainLooper()).post {
+                                Toast.makeText(
+                                    context,
+                                    "Gagal backup database",
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                            }
+                        }
+                        isBackupLoading.value = false
                     }
-                    isBackupLoading.value=false
-                }
-            },
-                modifier=modifier
+                },
+                modifier = modifier
                     .width(300.dp)
                     .height(50.dp)
                     .align(Alignment.CenterHorizontally),
@@ -214,7 +223,7 @@ fun GreetingPreview() {
                 .padding(20.dp)
                 .safeContentPadding()
         ) {
-            HomeScreen({},{},{})
+            HomeScreen({}, {}, {})
         }
     }
 }
