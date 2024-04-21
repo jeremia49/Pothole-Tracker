@@ -10,7 +10,7 @@ import org.tensorflow.lite.task.gms.vision.classifier.ImageClassifier
 object TFlite {
 
     var imageClassifier : ImageClassifier? = null;
-    private val modelName = "potholev5_metadata.tflite"
+    private val modelName = "potholev6_metadata.tflite"
 
     fun initializeTFLiteVision(ctx:Context){
         if(imageClassifier!=null) return;
