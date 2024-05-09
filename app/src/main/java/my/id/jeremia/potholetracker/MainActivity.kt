@@ -1,37 +1,49 @@
 package my.id.jeremia.potholetracker
 
-import android.content.Context
 import android.os.Bundle
-import android.view.WindowManager
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Email
+import androidx.compose.material.icons.filled.Password
+import androidx.compose.material3.Button
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalLifecycleOwner
-import androidx.datastore.core.DataStore
-import androidx.datastore.preferences.core.Preferences
-import androidx.datastore.preferences.preferencesDataStore
-import androidx.lifecycle.lifecycleScope
-import androidx.navigation.compose.NavHost
-import androidx.navigation.compose.composable
-import androidx.navigation.compose.rememberNavController
-import my.id.jeremia.potholetracker.Screen.CollabScreen
-import my.id.jeremia.potholetracker.Screen.HomeScreen
-import my.id.jeremia.potholetracker.Screen.InferenceListScreen
-import my.id.jeremia.potholetracker.Screen.MapScreen
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
+import my.id.jeremia.potholetracker.ui.splash.Splash
 import my.id.jeremia.potholetracker.ui.theme.PotholeTrackerTheme
-
-
-val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "settings")
-
+import my.id.jeremia.potholetracker.ui.theme.grey
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         setContent {
             PotholeTrackerTheme {
                 // A surface container using the 'background' color from the theme
@@ -39,7 +51,8 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    MyApp()
+
+                    Splash(Modifier)
 
                 }
             }
@@ -48,37 +61,149 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-fun MyApp(modifier: Modifier = Modifier) {
-    val navController = rememberNavController()
+private fun LoginView(
+    modifier: Modifier = Modifier,
+    email: String,
+    password: String,
+    emailError: String,
+    passwordError: String,
+    onEmailChange: (String) -> Unit,
+    onPasswordChange: (String) -> Unit,
+    basicLogin: () -> Unit
+) {
 
-    NavHost(navController = navController, startDestination = "home") {
-        composable("home") {
-            HomeScreen(
-                {
-                    navController.navigate("map")
-                },
-                {
-                    navController.navigate("collab")
-                },
-                {
-                    navController.navigate("inferenceList")
-                },
-            )
+    Box(
+        modifier = modifier.fillMaxSize()
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth(.8f)
+                .defaultMinSize()
+                .align(Alignment.Center)
+                .background(
+                    color = when{
+                        isSystemInDarkTheme() ->
+                            grey
+                        else ->
+                            MaterialTheme.colorScheme.background
+                    },
+                    shape = RoundedCornerShape(8.dp)
+                ),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+
+        ) {
+            Row(
+                modifier = Modifier.padding(
+                    start = 16.dp,
+                    end = 16.dp,
+                    top = 32.dp,
+                    bottom = 4.dp
+                )
+            ) {
+                Image(
+                    painterResource(R.drawable.potholetracker_logo_label),
+                    contentDescription = "",
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier.size(200.dp)
+                )
+            }
+            Row(
+                modifier = Modifier.padding(
+                    start = 16.dp,
+                    end = 16.dp,
+                    top = 32.dp,
+                    bottom = 4.dp
+                )
+            ) {
+                OutlinedTextField(
+                    modifier = Modifier.fillMaxWidth(),
+                    value = email,
+                    onValueChange = onEmailChange,
+                    label = { Text("Email") },
+                    singleLine = true,
+                    leadingIcon = {
+                        Icon(
+                            Icons.Filled.Email,
+                            contentDescription = "Email"
+                        )
+                    },
+                    isError = emailError.isNotEmpty(),
+                    supportingText = {
+                        Text(text = emailError)
+                    },
+                    keyboardOptions = KeyboardOptions(
+                        keyboardType = KeyboardType.Email,
+                        imeAction = ImeAction.Next
+                    ),
+                )
+            }
+            Row(
+                modifier = Modifier.padding(
+                    start = 16.dp,
+                    end = 16.dp,
+                    top = 4.dp,
+                    bottom = 4.dp
+                )
+            ) {
+                OutlinedTextField(
+                    modifier = Modifier.fillMaxWidth(),
+                    value = password,
+                    onValueChange = onPasswordChange,
+                    label = { Text("Password") },
+                    singleLine = true,
+                    leadingIcon = {
+                        Icon(
+                            Icons.Filled.Password,
+                            contentDescription = "Password"
+                        )
+                    },
+                    isError = passwordError.isNotEmpty(),
+                    supportingText = {
+                        Text(text = passwordError)
+                    },
+                    keyboardOptions = KeyboardOptions(
+                        keyboardType = KeyboardType.Password,
+                        imeAction = ImeAction.Done
+                    ),
+                    visualTransformation = PasswordVisualTransformation(),
+                )
+            }
+
+            Row(
+                modifier = Modifier.padding(
+                    start = 16.dp,
+                    end = 16.dp,
+                    top = 4.dp,
+                    bottom = 48.dp
+                )
+            ) {
+                Button(
+                    modifier = Modifier.fillMaxWidth(),
+                    onClick = basicLogin,
+                ) {
+                    Text(
+                        modifier = Modifier.padding(8.dp),
+                        text = stringResource(R.string.login),
+                        style = MaterialTheme.typography.bodyLarge
+                    )
+                }
+            }
         }
-        composable("map") {
-            MapScreen()
-        }
-        composable("collab") {
-            CollabScreen({
-                navController.popBackStack()
-            })
-        }
-        composable("inferenceList") {
-            InferenceListScreen({
-                navController.popBackStack()
-            })
-        }
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun LoginPreview() {
+    LoginView(
+        email = "abcsheth",
+        password = "",
+        emailError = "Invalid Email",
+        passwordError = "",
+        onEmailChange = {},
+        onPasswordChange = {}
+    ) {
 
     }
-
 }
