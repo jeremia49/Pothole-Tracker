@@ -37,9 +37,11 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import dagger.hilt.android.AndroidEntryPoint
 import my.id.jeremia.potholetracker.ui.splash.Splash
 import my.id.jeremia.potholetracker.ui.theme.PotholeTrackerTheme
 import my.id.jeremia.potholetracker.ui.theme.grey
+
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {

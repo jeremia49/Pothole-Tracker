@@ -1,6 +1,8 @@
 plugins {
     alias(libs.plugins.androidApplication)
     alias(libs.plugins.jetbrainsKotlinAndroid)
+    id("com.google.dagger.hilt.android")
+    id("com.google.devtools.ksp")
 }
 
 android {
@@ -40,7 +42,7 @@ android {
         compose = true
     }
     composeOptions {
-        kotlinCompilerExtensionVersion = "1.5.1"
+        kotlinCompilerExtensionVersion = "1.5.10"
     }
     packaging {
         resources {
@@ -50,6 +52,20 @@ android {
 }
 
 dependencies {
+    // Work
+    val work = "2.9.0"
+    implementation("androidx.work:work-runtime-ktx:$work")
+
+    // Dependency Management
+    val hilt = "2.50"
+    implementation("com.google.dagger:hilt-android:$hilt")
+    ksp("com.google.dagger:hilt-android-compiler:$hilt")
+
+    val hiltKtx = "1.1.0"
+    implementation("androidx.hilt:hilt-navigation-compose:$hiltKtx")
+    implementation("androidx.hilt:hilt-work:$hiltKtx")
+    ksp("androidx.hilt:hilt-compiler:$hiltKtx")
+
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
