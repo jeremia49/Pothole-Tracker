@@ -66,6 +66,7 @@ dependencies {
     implementation("androidx.hilt:hilt-work:$hiltKtx")
     ksp("androidx.hilt:hilt-compiler:$hiltKtx")
 
+    implementation(libs.androidx.core.splashscreen)
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)

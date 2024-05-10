@@ -37,6 +37,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import dagger.hilt.android.AndroidEntryPoint
 import my.id.jeremia.potholetracker.ui.splash.Splash
 import my.id.jeremia.potholetracker.ui.theme.PotholeTrackerTheme
@@ -46,6 +47,9 @@ import my.id.jeremia.potholetracker.ui.login.LoginView
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        Thread.sleep(500)
+        installSplashScreen()
+
         setContent {
             PotholeTrackerTheme {
                 // A surface container using the 'background' color from the theme
