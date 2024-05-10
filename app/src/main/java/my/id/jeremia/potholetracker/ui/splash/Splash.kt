@@ -27,8 +27,8 @@ private fun SplashView(modifier: Modifier) {
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Image(
-            modifier = Modifier.size(200.dp),
-            painter = painterResource(R.drawable.potholetracker_logo_label),
+            modifier = Modifier.size(300.dp),
+            painter = painterResource(R.drawable.pothole_logolabel),
             contentDescription = "Logo"
         )
     }
@@ -39,3 +39,4 @@ private fun SplashView(modifier: Modifier) {
 private fun LoginPreview() {
     SplashView(modifier = Modifier)
 }
+

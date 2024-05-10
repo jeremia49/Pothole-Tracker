@@ -79,7 +79,7 @@ private fun LoginView(
                 )
             ) {
                 Image(
-                    painterResource(R.drawable.potholetracker_logo_label),
+                    painterResource(R.drawable.pothole_logolabel),
                     contentDescription = "",
                     contentScale = ContentScale.Crop,
                     modifier = Modifier.size(200.dp)
