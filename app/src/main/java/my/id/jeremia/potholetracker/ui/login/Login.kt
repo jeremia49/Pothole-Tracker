@@ -38,7 +38,7 @@ import my.id.jeremia.potholetracker.ui.theme.grey
 
 
 @Composable
-private fun LoginView(
+fun LoginView(
     modifier: Modifier = Modifier,
     email: String,
     password: String,
@@ -58,12 +58,7 @@ private fun LoginView(
                 .defaultMinSize()
                 .align(Alignment.Center)
                 .background(
-                    color = when{
-                        isSystemInDarkTheme() ->
-                            grey
-                        else ->
-                            MaterialTheme.colorScheme.background
-                    },
+                    color =  MaterialTheme.colorScheme.background,
                     shape = RoundedCornerShape(8.dp)
                 ),
             horizontalAlignment = Alignment.CenterHorizontally,

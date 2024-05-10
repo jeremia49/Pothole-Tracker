@@ -41,7 +41,7 @@ import dagger.hilt.android.AndroidEntryPoint
 import my.id.jeremia.potholetracker.ui.splash.Splash
 import my.id.jeremia.potholetracker.ui.theme.PotholeTrackerTheme
 import my.id.jeremia.potholetracker.ui.theme.grey
-
+import my.id.jeremia.potholetracker.ui.login.LoginView
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -54,7 +54,16 @@ class MainActivity : ComponentActivity() {
                     color = MaterialTheme.colorScheme.background
                 ) {
 
-                    Splash(Modifier)
+                    LoginView(
+                        email = "abcsheth",
+                        password = "",
+                        emailError = "Invalid Email",
+                        passwordError = "",
+                        onEmailChange = {},
+                        onPasswordChange = {}
+                    ) {
+
+                    }
 
                 }
             }
