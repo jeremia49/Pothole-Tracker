@@ -52,6 +52,7 @@ android {
 }
 
 dependencies {
+    implementation(libs.androidx.lifecycle.runtime.compose)
     // Work
     val work = "2.9.0"
     implementation("androidx.work:work-runtime-ktx:$work")

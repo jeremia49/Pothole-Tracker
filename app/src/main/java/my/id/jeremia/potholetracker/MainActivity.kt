@@ -3,6 +3,7 @@ package my.id.jeremia.potholetracker
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.viewModels
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.isSystemInDarkTheme
@@ -38,13 +39,17 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dagger.hilt.android.AndroidEntryPoint
 import my.id.jeremia.potholetracker.ui.splash.Splash
 import my.id.jeremia.potholetracker.ui.theme.PotholeTrackerTheme
 import my.id.jeremia.potholetracker.ui.theme.grey
 import my.id.jeremia.potholetracker.ui.login.LoginView
+import my.id.jeremia.potholetracker.ui.login.LoginViewModel
 
+@AndroidEntryPoint()
 class MainActivity : ComponentActivity() {
+    private val loginViewModel: LoginViewModel by viewModels()
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         Thread.sleep(500)
@@ -59,12 +64,16 @@ class MainActivity : ComponentActivity() {
                 ) {
 
                     LoginView(
-                        email = "abcsheth",
-                        password = "",
-                        emailError = "Invalid Email",
-                        passwordError = "",
-                        onEmailChange = {},
-                        onPasswordChange = {}
+                        email = loginViewModel.email.collectAsStateWithLifecycle().value,
+                        password =loginViewModel.password.collectAsStateWithLifecycle().value,
+                        emailError = loginViewModel.emailError.collectAsStateWithLifecycle().value,
+                        passwordError = loginViewModel.passwordError.collectAsStateWithLifecycle().value,
+                        onEmailChange = {
+                            loginViewModel.onEmailChange(it)
+                        },
+                        onPasswordChange = {
+                            loginViewModel.onPasswordChange(it)
+                        }
                     ) {
 
                     }
