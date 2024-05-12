@@ -1,4 +1,6 @@
 <resources>
     <string name="app_name">Pothole Tracker</string>
     <string name="login">Masuk</string>
+    <string name="login_header">Selamat datang 👋</string>
+    <string name="login_subheader">Selamat datang di aplikasi PotholeTracker</string>
 </resources>
