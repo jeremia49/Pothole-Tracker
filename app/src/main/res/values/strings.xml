@@ -3,4 +3,13 @@
     <string name="login">Masuk</string>
     <string name="login_header">Selamat datang 👋</string>
     <string name="login_subheader">Selamat datang di aplikasi PotholeTracker</string>
+    <string name="register_header">Daftar Akun</string>
+    <string name="register_subheader">Daftar akun potholetracker</string>
+    <string name="ok">Ok</string>
+    <string name="server_connection_error">Gagal terhubung ke server</string>
+    <string name="no_internet_connection">Tidak ada koneksi internet</string>
+    <string name="permission_not_available">Forbidden\n</string>
+    <string name="network_internal_error">Network Internal Error</string>
+    <string name="network_server_not_available">Network server tidak tersedia</string>
+    <string name="something_went_wrong">Something went wrong</string>
 </resources>

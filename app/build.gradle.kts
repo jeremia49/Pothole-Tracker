@@ -3,6 +3,7 @@ plugins {
     alias(libs.plugins.jetbrainsKotlinAndroid)
     id("com.google.dagger.hilt.android")
     id("com.google.devtools.ksp")
+    id("kotlin-parcelize")
 }
 
 android {
@@ -23,7 +24,11 @@ android {
     }
 
     buildTypes {
+        debug{
+            buildConfigField("String","BASE_URL", "\"http://10.0.2.2:8000/\"")
+        }
         release {
+            buildConfigField("String","BASE_URL","\"https://potholetracker.jeremia.my.id\"")
             isMinifyEnabled = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
@@ -40,6 +45,7 @@ android {
     }
     buildFeatures {
         compose = true
+        buildConfig=true
     }
     composeOptions {
         kotlinCompilerExtensionVersion = "1.5.10"
@@ -52,7 +58,28 @@ android {
 }
 
 dependencies {
+
+    // Network
+    val retrofit2 = "2.11.0"
+    implementation("com.squareup.retrofit2:retrofit:$retrofit2")
+    implementation("com.squareup.retrofit2:converter-moshi:${retrofit2}")
+
+    val okhttp3 = "4.12.0"
+    implementation(platform("com.squareup.okhttp3:okhttp-bom:$okhttp3"))
+    implementation("com.squareup.okhttp3:okhttp")
+    implementation("com.squareup.okhttp3:logging-interceptor")
+
+    // JSON
+    val moshi = "1.15.0"
+    implementation("com.squareup.moshi:moshi:$moshi")
+    ksp("com.squareup.moshi:moshi-kotlin-codegen:$moshi")
+
+
+    val coroutines = "1.8.1"
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:$coroutines")
+
     implementation(libs.androidx.lifecycle.runtime.compose)
+
     // Work
     val work = "2.9.0"
     implementation("androidx.work:work-runtime-ktx:$work")
@@ -66,6 +93,12 @@ dependencies {
     implementation("androidx.hilt:hilt-navigation-compose:$hiltKtx")
     implementation("androidx.hilt:hilt-work:$hiltKtx")
     ksp("androidx.hilt:hilt-compiler:$hiltKtx")
+
+
+    //Lottie Animation
+    val lottie = "6.4.0"
+    implementation("com.airbnb.android:lottie-compose:$lottie")
+
 
     implementation(libs.androidx.core.splashscreen)
 

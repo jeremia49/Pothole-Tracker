@@ -1,5 +1,6 @@
 package my.id.jeremia.potholetracker.ui.splash
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -12,26 +13,18 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import my.id.jeremia.potholetracker.R
+import my.id.jeremia.potholetracker.ui.common.image.LottieImage
+import my.id.jeremia.potholetracker.ui.common.loader.LoadingPlaceholder
 
 @Composable
-fun Splash(modifier: Modifier) {
-//    BackHandler { viewModel.navigator.finish() }
+fun Splash(modifier: Modifier, viewModel: SplashViewModel) {
+    BackHandler { viewModel.navigator.finish() }
     SplashView(modifier)
 }
 
 @Composable
 private fun SplashView(modifier: Modifier) {
-    Column(
-        modifier = modifier.fillMaxSize(),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Image(
-            modifier = Modifier.size(300.dp),
-            painter = painterResource(R.drawable.pothole_logolabel),
-            contentDescription = "Logo"
-        )
-    }
+    LoadingPlaceholder(loading = true)
 }
 
 @Preview(showBackground = true)

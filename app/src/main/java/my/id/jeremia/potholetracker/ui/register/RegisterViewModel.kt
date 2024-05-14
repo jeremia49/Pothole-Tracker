@@ -1,16 +1,10 @@
-package my.id.jeremia.potholetracker.ui.login
+package my.id.jeremia.potholetracker.ui.register
 
-import android.app.Activity
 import android.content.Context
-import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.launch
 import my.id.jeremia.potholetracker.data.repository.AuthRepository
 import my.id.jeremia.potholetracker.ui.base.BaseViewModel
 import my.id.jeremia.potholetracker.ui.common.loader.Loader
@@ -22,16 +16,15 @@ import javax.inject.Inject
 
 
 @HiltViewModel
-class LoginViewModel @Inject constructor(
+class RegisterViewModel @Inject constructor(
     loader: Loader,
     private val authRepository: AuthRepository,
     val navigator: Navigator,
     val messenger: Messenger,
-    @ApplicationContext val ctx :Context,
 ) : BaseViewModel(loader,messenger,navigator) {
 
     companion object {
-        const val TAG = "LoginViewModel"
+        const val TAG = "RegisterViewModel"
     }
 
     private val _email = MutableStateFlow("")
