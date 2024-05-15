@@ -4,6 +4,7 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import my.id.jeremia.potholetracker.data.repository.UserRepository
 import my.id.jeremia.potholetracker.ui.base.BaseViewModel
 import my.id.jeremia.potholetracker.ui.common.loader.Loader
 import my.id.jeremia.potholetracker.ui.common.snackbar.Messenger
@@ -17,6 +18,7 @@ class SplashViewModel @Inject constructor(
     val loader: Loader,
     val messenger: Messenger,
     val navigator: Navigator,
+    val userRepository: UserRepository,
 ) : BaseViewModel(loader, messenger, navigator) {
 
     companion object {
@@ -36,8 +38,15 @@ class SplashViewModel @Inject constructor(
 //                navigator.navigateTo(Destination.Login.route, true)
 //            }
         viewModelScope.launch{
-            delay(1000)
-            navigator.navigateTo(Destination.Login.route, true)
+            println("Splash")
+            val user = userRepository.getCurrentAuth()
+            println(user)
+//            delay(1000)
+            if(user === null){
+                navigator.navigateTo(Destination.Login.route, true)
+            }else{
+                navigator.navigateTo(Destination.Home.Find.route, true)
+            }
         }
 
     }

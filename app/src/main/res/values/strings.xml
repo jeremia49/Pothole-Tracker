@@ -5,7 +5,7 @@
     <string name="login_subheader">Selamat datang di aplikasi PotholeTracker</string>
     <string name="register_header">Daftar Akun</string>
     <string name="register_subheader">Daftar akun potholetracker</string>
-    <string name="ok">Ok</string>
+    <string name="ok">Oke</string>
     <string name="server_connection_error">Gagal terhubung ke server</string>
     <string name="no_internet_connection">Tidak ada koneksi internet</string>
     <string name="permission_not_available">Forbidden\n</string>

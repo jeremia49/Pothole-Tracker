@@ -1,14 +1,19 @@
 package my.id.jeremia.potholetracker.ui.login
 
 import android.content.Context
+import androidx.lifecycle.viewModelScope
 import com.squareup.moshi.Moshi
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
+import my.id.jeremia.potholetracker.data.local.datastore.UserDataStore
+import my.id.jeremia.potholetracker.data.model.Auth
 import my.id.jeremia.potholetracker.data.remote.response.ApiErrorResponse
 import my.id.jeremia.potholetracker.data.remote.apis.login.response.AuthLoginErrorResponse
 import my.id.jeremia.potholetracker.data.repository.AuthRepository
+import my.id.jeremia.potholetracker.data.repository.UserRepository
 import my.id.jeremia.potholetracker.ui.base.BaseViewModel
 import my.id.jeremia.potholetracker.ui.common.loader.Loader
 import my.id.jeremia.potholetracker.ui.common.snackbar.Messenger
@@ -25,6 +30,7 @@ class LoginViewModel @Inject constructor(
     val navigator: Navigator,
     val messenger: Messenger,
     @ApplicationContext val ctx :Context,
+    val userRepository: UserRepository,
 ) : BaseViewModel(loader,messenger,navigator) {
 
     companion object {
@@ -94,7 +100,16 @@ class LoginViewModel @Inject constructor(
 
                 authRepository.doLogin(email.value, password.value)
                     .collect {
-                        println(it)
+                        userRepository.saveCurrentAuth(
+                            Auth(
+                                it.data!!.uid!!.toString(),
+                                it.data.name!!,
+                                it.data.email!!,
+                                it.data.accessToken!!
+                            )
+                        )
+                        messenger.deliver(Message.success("Berhasil login"))
+                        navigator.navigateTo(Destination.Home.Find.route)
                     }
             }
 
