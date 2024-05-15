@@ -2,9 +2,11 @@ package my.id.jeremia.potholetracker.data.repository
 
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
-import my.id.jeremia.potholetracker.data.remote.apis.login.AuthAPI
-import my.id.jeremia.potholetracker.data.remote.apis.login.request.BasicLoginRequest
-import my.id.jeremia.potholetracker.data.remote.apis.login.response.AuthLoginSuccessResponse
+import my.id.jeremia.potholetracker.data.remote.apis.auth.AuthAPI
+import my.id.jeremia.potholetracker.data.remote.apis.auth.request.AuthLoginRequest
+import my.id.jeremia.potholetracker.data.remote.apis.auth.request.AuthRegisterRequest
+import my.id.jeremia.potholetracker.data.remote.apis.auth.response.AuthLoginSuccessResponse
+import my.id.jeremia.potholetracker.data.remote.apis.auth.response.AuthRegisterSuccessResponse
 import javax.inject.Inject
 
 class AuthRepository @Inject constructor(
@@ -13,13 +15,13 @@ class AuthRepository @Inject constructor(
 
     suspend fun doLogin(email:String, password:String):Flow<AuthLoginSuccessResponse> =
         flow {
-            emit(authAPI.login(BasicLoginRequest(email,password)))
+            emit(authAPI.login(AuthLoginRequest(email,password)))
         }
 
-//    suspend fun doRegister(email:String, password:String):Flow<AuthLoginResponse> =
-//        flow {
-//            emit(authAPI.login(BasicLoginRequest(email,password)))
-//        }
+    suspend fun doRegister(email:String, name:String, password:String, ):Flow<AuthRegisterSuccessResponse> =
+        flow {
+            emit(authAPI.register(AuthRegisterRequest(email,name,password)))
+        }
 
 
 }

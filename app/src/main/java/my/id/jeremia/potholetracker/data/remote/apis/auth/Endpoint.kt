@@ -1,4 +1,4 @@
-package my.id.jeremia.potholetracker.data.remote.apis.login
+package my.id.jeremia.potholetracker.data.remote.apis.auth
 
 object Endpoint {
 

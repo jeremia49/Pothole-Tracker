@@ -8,7 +8,7 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import my.id.jeremia.potholetracker.BuildConfig
 import my.id.jeremia.potholetracker.data.remote.Networking
-import my.id.jeremia.potholetracker.data.remote.apis.login.AuthAPI
+import my.id.jeremia.potholetracker.data.remote.apis.auth.AuthAPI
 import my.id.jeremia.potholetracker.di.qualifier.BaseUrl
 import okhttp3.OkHttpClient
 import javax.inject.Singleton

@@ -1,17 +1,14 @@
 package my.id.jeremia.potholetracker.ui.login
 
 import android.content.Context
-import androidx.lifecycle.viewModelScope
 import com.squareup.moshi.Moshi
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.launch
-import my.id.jeremia.potholetracker.data.local.datastore.UserDataStore
 import my.id.jeremia.potholetracker.data.model.Auth
 import my.id.jeremia.potholetracker.data.remote.response.ApiErrorResponse
-import my.id.jeremia.potholetracker.data.remote.apis.login.response.AuthLoginErrorResponse
+import my.id.jeremia.potholetracker.data.remote.apis.auth.response.AuthLoginErrorResponse
 import my.id.jeremia.potholetracker.data.repository.AuthRepository
 import my.id.jeremia.potholetracker.data.repository.UserRepository
 import my.id.jeremia.potholetracker.ui.base.BaseViewModel
@@ -124,7 +121,7 @@ class LoginViewModel @Inject constructor(
     private fun validate(): Boolean {
         var error = false
         if (!email.value.isValidEmail()) _emailError.tryEmit("Invalid Email").run { error = true }
-        if (password.value.length < 6) _passwordError.tryEmit("Password length should be at least 6")
+        if (password.value.length < 8) _passwordError.tryEmit("Password length should be at least 8")
             .run { error = true }
         return !error
     }

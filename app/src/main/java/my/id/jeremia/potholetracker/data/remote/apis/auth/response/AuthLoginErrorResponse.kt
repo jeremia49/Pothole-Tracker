@@ -1,4 +1,4 @@
-package my.id.jeremia.potholetracker.data.remote.apis.login.response
+package my.id.jeremia.potholetracker.data.remote.apis.auth.response
 
 
 import com.squareup.moshi.Json

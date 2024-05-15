@@ -51,14 +51,21 @@ fun Register(modifier: Modifier = Modifier, viewModel: RegisterViewModel) {
     BackHandler { viewModel.navigator.finish() }
     RegisterView(
         modifier,
-        email = viewModel.email.collectAsStateWithLifecycle().value,
-        password = viewModel.password.collectAsStateWithLifecycle().value,
-        emailError = viewModel.emailError.collectAsStateWithLifecycle().value,
-        passwordError = viewModel.passwordError.collectAsStateWithLifecycle().value,
-        onEmailChange = { viewModel.onEmailChange(it) },
-        onPasswordChange = { viewModel.onPasswordChange(it) },
-        basicLogin = { viewModel.dologin() },
-//        navRegister = {viewModel.navRegister()}
+        name=viewModel.name.collectAsStateWithLifecycle().value,
+        email=viewModel.email.collectAsStateWithLifecycle().value,
+        password=viewModel.password.collectAsStateWithLifecycle().value,
+        passwordConfirm=viewModel.passwordConfirm.collectAsStateWithLifecycle().value,
+        nameError=viewModel.nameError.collectAsStateWithLifecycle().value,
+        emailError=viewModel.emailError.collectAsStateWithLifecycle().value,
+        passwordError=viewModel.passwordError.collectAsStateWithLifecycle().value,
+        passwordConfirmError=viewModel.passwordConfirmError.collectAsStateWithLifecycle().value,
+        enableRegisterButton=viewModel.enableRegisterButton.collectAsStateWithLifecycle().value,
+        onNameChange={viewModel.onNameChange(it)},
+        onEmailChange= {viewModel.onEmailChange(it)},
+        onPasswordChange={viewModel.onPasswordChange(it)},
+        onPasswordConfirmChange={viewModel.onPasswordConfirmationChange(it)},
+        register={viewModel.doRegister()},
+        navLogin={viewModel.navLogin()},
     )
 }
 
@@ -66,13 +73,21 @@ fun Register(modifier: Modifier = Modifier, viewModel: RegisterViewModel) {
 @Composable
 fun RegisterView(
     modifier: Modifier = Modifier,
+    name:String,
     email: String,
     password: String,
+    passwordConfirm:String,
+    nameError:String,
     emailError: String,
     passwordError: String,
+    passwordConfirmError:String,
+    enableRegisterButton:Boolean,
+    onNameChange:(String)->Unit,
     onEmailChange: (String) -> Unit,
     onPasswordChange: (String) -> Unit,
-    basicLogin: () -> Unit
+    onPasswordConfirmChange: (String)->Unit,
+    register: () -> Unit,
+    navLogin:()->Unit,
 ) {
 
     Box(
@@ -133,16 +148,15 @@ fun RegisterView(
                     modifier = Modifier
                         .padding(top = 5.dp)
                         .fillMaxWidth(),
-                    value = email,
-                    onValueChange = onEmailChange,
+                    value = name,
+                    onValueChange = onNameChange,
                     placeholder = { Text("Nama lengkap anda") },
                     singleLine = true,
-                    isError = emailError.isNotEmpty(),
+                    isError = nameError.isNotEmpty(),
                     supportingText = {
-                        Text(text = emailError)
+                        Text(text = nameError)
                     },
                     keyboardOptions = KeyboardOptions(
-                        keyboardType = KeyboardType.Email,
                         imeAction = ImeAction.Next
                     ),
                 )
@@ -191,7 +205,7 @@ fun RegisterView(
                     },
                     keyboardOptions = KeyboardOptions(
                         keyboardType = KeyboardType.Password,
-                        imeAction = ImeAction.Done
+                        imeAction = ImeAction.Next
                     ),
                     visualTransformation = PasswordVisualTransformation(),
                 )
@@ -206,13 +220,13 @@ fun RegisterView(
                     modifier = Modifier
                         .padding(top = 5.dp)
                         .fillMaxWidth(),
-                    value = password,
-                    onValueChange = onPasswordChange,
-                    placeholder = { Text("Password") },
+                    value = passwordConfirm,
+                    onValueChange = onPasswordConfirmChange,
+                    placeholder = { Text("Password Konfirmasi") },
                     singleLine = true,
-                    isError = passwordError.isNotEmpty(),
+                    isError = passwordConfirmError.isNotEmpty(),
                     supportingText = {
-                        Text(text = passwordError)
+                        Text(text = passwordConfirmError)
                     },
                     keyboardOptions = KeyboardOptions(
                         keyboardType = KeyboardType.Password,
@@ -224,15 +238,19 @@ fun RegisterView(
                 Button(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(bottom = 20.dp),
-                    onClick = basicLogin,
+                        .padding(
+                            top = 15.dp,
+                            bottom = 20.dp
+                        ),
+                    onClick = register,
                     colors = ButtonDefaults.buttonColors().copy(
                         containerColor = Color.Black
-                    )
+                    ),
+                    enabled = enableRegisterButton
                 ) {
                     Text(
                         modifier = Modifier.padding(8.dp),
-                        text = stringResource(R.string.login),
+                        text = stringResource(R.string.daftar),
                         style = MaterialTheme.typography.bodyLarge.copy(
                             color = Color.White,
                             fontFamily = manropeFontFamily,
@@ -242,60 +260,7 @@ fun RegisterView(
                     )
                 }
 
-//                Box(
-//                    modifier,
-//                    contentAlignment = Alignment.Center
-//                ){
-//                    HorizontalDivider(
-//                        modifier=modifier,
-//                        thickness = 1.dp,
-//                    )
-//                    Text(
-//                        "atau",
-//                        modifier = modifier
-//                            .background(MaterialTheme.colorScheme.background)
-//                            .padding(horizontal = 10.dp),
-//                        textAlign = TextAlign.Center,
-//                    )
-//                }
-//
-//
-//                OutlinedButton(
-//                    onClick = { /*TODO*/ },
-//                    modifier = modifier
-//                        .fillMaxWidth()
-//                        .padding(top = 20.dp),
-//                    colors = ButtonDefaults.buttonColors().copy(
-//                        containerColor = Color.Black
-//                    )
-//                ) {
-//                    Row(
-//                        modifier = modifier,
-//                    ) {
-//                        Icon(
-//                            painter = painterResource(id = R.drawable.icons8_google),
-//                            contentDescription = "Login dengan Google",
-//                            modifier = modifier
-//                                .size(20.dp)
-//                        )
-//
-//                        Text(
-//                            "Login with Google",
-//                            modifier = modifier
-//                                .fillMaxWidth(),
-//                            textAlign = TextAlign.Center,
-//
-//                            )
-//                    }
-//
-//                }
-
-
             }
-
-
-
-
 
             Row(
                 modifier= modifier
@@ -306,7 +271,7 @@ fun RegisterView(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.Center,
             ){
-                Text("Belum ada akun ? ",
+                Text("Sudah ada akun ? ",
                     style = TextStyle(
 //                        color = grey,
                         fontFamily = manropeFontFamily,
@@ -314,8 +279,8 @@ fun RegisterView(
                         fontSize = 14.sp,
                     )
                 )
-                TextButton(onClick = { /*TODO*/ }) {
-                    Text("Daftar",
+                TextButton(onClick = navLogin) {
+                    Text("Login",
                         style = TextStyle(
 //                            color = Color.Black,
                             fontFamily = manropeFontFamily,
@@ -325,17 +290,6 @@ fun RegisterView(
                     )
                 }
             }
-
-
-//            Button(onClick = {}) {
-////                Image(
-////                    painter = painterResource(id = R.drawable.icons8_google),
-////                    contentDescription = "Login with Google",
-////                    size
-////                )
-//
-//            }
-
 
         }
     }
@@ -350,8 +304,15 @@ private fun RegisterPreview() {
         emailError = "",
         passwordError = "",
         onEmailChange = {},
-        onPasswordChange = {}
-    ) {
-
-    }
+        onPasswordChange = {},
+        name = "",
+        onNameChange = {},
+        nameError = "",
+        passwordConfirm = "",
+        passwordConfirmError = "",
+        onPasswordConfirmChange = {},
+        navLogin = {},
+        register = {},
+        enableRegisterButton = true,
+    )
 }
