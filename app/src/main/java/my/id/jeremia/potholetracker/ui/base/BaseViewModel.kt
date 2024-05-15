@@ -14,6 +14,7 @@ import my.id.jeremia.potholetracker.ui.common.loader.Loader
 import my.id.jeremia.potholetracker.ui.common.snackbar.Messenger
 import my.id.jeremia.potholetracker.ui.navigation.Destination
 import my.id.jeremia.potholetracker.ui.navigation.Navigator
+import retrofit2.HttpException
 import java.util.logging.Logger
 
 
@@ -30,6 +31,7 @@ abstract class BaseViewModel(
     protected fun launchNetwork(
         silent: Boolean = false,
         error: (ApiErrorResponse) -> Unit = {},
+        finish:()->Unit={},
         block: suspend CoroutineScope.() -> Unit
     ) {
         if (!silent) {
@@ -45,6 +47,7 @@ abstract class BaseViewModel(
                     e.message?.let { Log.e(TAG, it) }
                 } finally {
                     loader.stop()
+                    finish();
                 }
             }
         } else {
@@ -54,8 +57,11 @@ abstract class BaseViewModel(
                 } catch (e: Throwable) {
                     if (e is CancellationException) return@launch
                     val errorResponse = e.toApiErrorResponse()
+                    handleNetworkError(errorResponse)
                     error(errorResponse)
                     e.message?.let { Log.e(TAG, it) }
+                } finally {
+                    finish();
                 }
             }
         }
@@ -66,34 +72,27 @@ abstract class BaseViewModel(
             ApiErrorResponse.Status.HTTP_BAD_GATEWAY,
             ApiErrorResponse.Status.REMOTE_CONNECTION_ERROR -> {
                 messenger.deliverRes(Message.error(R.string.server_connection_error))
-                navigator.navigateTo(Destination.ServerUnreachable.route)
+//                navigator.navigateTo(Destination.ServerUnreachable.route)
             }
 
             ApiErrorResponse.Status.NETWORK_CONNECTION_ERROR ->
                 messenger.deliverRes(Message.error(R.string.no_internet_connection))
 
-            ApiErrorResponse.Status.HTTP_UNAUTHORIZED ->
-                messenger.deliver(Message.error(err.message))
-
-            ApiErrorResponse.Status.HTTP_FORBIDDEN ->
-                messenger.deliverRes(Message.error(R.string.permission_not_available))
-
-            ApiErrorResponse.Status.HTTP_BAD_REQUEST ->
-                err.message.let { messenger.deliver(Message.error(err.message)) }
-
-            ApiErrorResponse.Status.HTTP_NOT_FOUND ->
-                err.message.let { messenger.deliver(Message.error(err.message)) }
-
-            ApiErrorResponse.Status.HTTP_INTERNAL_ERROR ->
-                messenger.deliverRes(Message.error(R.string.network_internal_error))
-
-            ApiErrorResponse.Status.HTTP_UNAVAILABLE -> {
-                messenger.deliverRes(Message.error(R.string.network_server_not_available))
-                navigator.navigateTo(Destination.ServerUnreachable.route)
-            }
+//            ApiErrorResponse.Status.HTTP_INTERNAL_ERROR ->
+//                messenger.deliverRes(Message.error(R.string.network_internal_error))
+//
+//            ApiErrorResponse.Status.HTTP_UNAVAILABLE -> {
+//                messenger.deliverRes(Message.error(R.string.network_server_not_available))
+//                navigator.navigateTo(Destination.ServerUnreachable.route)
+//            }
 
             ApiErrorResponse.Status.UNKNOWN ->
                 messenger.deliverRes(Message.error(R.string.something_went_wrong))
+
+            ApiErrorResponse.Status.API_ERROR -> {
+
+            }
+
         }
     }
 

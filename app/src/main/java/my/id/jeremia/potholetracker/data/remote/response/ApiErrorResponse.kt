@@ -13,20 +13,26 @@ data class ApiErrorResponse(
     val statusCode: Int = -1,
 
     @Json(name = "message")
-    val message: String = "Something went wrong"
+    val message: String = "Something went wrong",
+
+    val fullResponse: String?=null,
 ) {
     @Keep
     enum class Status(val code: Int) {
         UNKNOWN(-100),
         REMOTE_CONNECTION_ERROR(-101),
         NETWORK_CONNECTION_ERROR(-102),
-        HTTP_UNAUTHORIZED(HttpsURLConnection.HTTP_UNAUTHORIZED),
-        HTTP_FORBIDDEN(HttpsURLConnection.HTTP_FORBIDDEN),
-        HTTP_BAD_REQUEST(HttpsURLConnection.HTTP_BAD_REQUEST),
-        HTTP_NOT_FOUND(HttpsURLConnection.HTTP_NOT_FOUND),
-        HTTP_INTERNAL_ERROR(HttpsURLConnection.HTTP_INTERNAL_ERROR),
-        HTTP_UNAVAILABLE(HttpsURLConnection.HTTP_UNAVAILABLE),
-        HTTP_BAD_GATEWAY(HttpsURLConnection.HTTP_BAD_GATEWAY);
+
+        HTTP_BAD_GATEWAY(HttpsURLConnection.HTTP_BAD_GATEWAY),
+
+
+//        HTTP_UNAUTHORIZED(HttpsURLConnection.HTTP_UNAUTHORIZED),
+//        HTTP_FORBIDDEN(HttpsURLConnection.HTTP_FORBIDDEN),
+//        HTTP_BAD_REQUEST(HttpsURLConnection.HTTP_BAD_REQUEST),
+//        HTTP_NOT_FOUND(HttpsURLConnection.HTTP_NOT_FOUND),
+//        HTTP_INTERNAL_ERROR(HttpsURLConnection.HTTP_INTERNAL_ERROR),
+//        HTTP_UNAVAILABLE(HttpsURLConnection.HTTP_UNAVAILABLE),
+        API_ERROR(-9999);
 
         companion object {
             private val codes = entries.toTypedArray()

@@ -1,4 +1,4 @@
-package my.id.jeremia.potholetracker.data.model
+package my.id.jeremia.potholetracker.data.remote.apis.login.response
 
 import android.os.Parcelable
 import com.squareup.moshi.Json
@@ -7,9 +7,9 @@ import kotlinx.parcelize.Parcelize
 
 @Parcelize
 @JsonClass(generateAdapter = true)
-data class AuthLoginResponse(
+data class AuthLoginSuccessResponse(
 
-    @Json(name = "user")
+    @Json(name = "data")
     val data: String,
 
     @Json(name = "message")
@@ -19,5 +19,5 @@ data class AuthLoginResponse(
     val reason: String?,
 
     @Json(name = "status")
-    val status: String
+    val status: String,
 ) : Parcelable

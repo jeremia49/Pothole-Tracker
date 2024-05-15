@@ -21,19 +21,12 @@ fun Throwable.toApiErrorResponse(): ApiErrorResponse {
                 return ApiErrorResponse(ApiErrorResponse.Status.NETWORK_CONNECTION_ERROR, 0)
 
             is HttpException -> {
-                val error = Moshi.Builder()
-                    .build()
-                    .adapter(ApiErrorResponse::class.java)
-                    .fromJson(this.response()?.errorBody()?.string().orEmpty())
-
-                if (error != null)
-                    ApiErrorResponse(
-                        ApiErrorResponse.Status[this.code()],
-                        error.statusCode,
-                        error.message
-                    )
-                else
-                    defaultResponse
+                return ApiErrorResponse(
+                    ApiErrorResponse.Status.API_ERROR,
+                    ApiErrorResponse.Status.API_ERROR.code,
+                    "",
+                    this.response()?.errorBody()?.string()
+                )
             }
 
             else -> {

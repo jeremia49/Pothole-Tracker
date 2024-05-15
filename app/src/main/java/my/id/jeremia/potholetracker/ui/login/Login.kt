@@ -66,6 +66,7 @@ fun Login(modifier: Modifier = Modifier, viewModel: LoginViewModel) {
         password = viewModel.password.collectAsStateWithLifecycle().value,
         emailError = viewModel.emailError.collectAsStateWithLifecycle().value,
         passwordError = viewModel.passwordError.collectAsStateWithLifecycle().value,
+        enableLoginButton=viewModel.enableLoginButton.collectAsStateWithLifecycle().value,
         onEmailChange = { viewModel.onEmailChange(it) },
         onPasswordChange = { viewModel.onPasswordChange(it) },
         basicLogin = { viewModel.dologin() },
@@ -81,6 +82,7 @@ fun LoginView(
     password: String,
     emailError: String,
     passwordError: String,
+    enableLoginButton:Boolean,
     onEmailChange: (String) -> Unit,
     onPasswordChange: (String) -> Unit,
     basicLogin: () -> Unit,
@@ -185,11 +187,15 @@ fun LoginView(
                 Button(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(bottom = 20.dp),
+                        .padding(
+                            top=15.dp,
+                            bottom = 20.dp
+                        ),
                     onClick = basicLogin,
                     colors = ButtonDefaults.buttonColors().copy(
                         containerColor = Color.Black
-                    )
+                    ),
+                    enabled = enableLoginButton,
                 ) {
                     Text(
                         modifier = Modifier.padding(8.dp),
@@ -315,6 +321,7 @@ private fun LoginPreview() {
         onEmailChange = {},
         onPasswordChange = {},
         basicLogin = {},
-        navRegister = {}
+        navRegister = {},
+        enableLoginButton = true,
     )
 }

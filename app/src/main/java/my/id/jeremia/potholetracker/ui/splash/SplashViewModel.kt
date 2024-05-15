@@ -36,7 +36,7 @@ class SplashViewModel @Inject constructor(
 //                navigator.navigateTo(Destination.Login.route, true)
 //            }
         viewModelScope.launch{
-            delay(500)
+            delay(1000)
             navigator.navigateTo(Destination.Login.route, true)
         }
 
