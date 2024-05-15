@@ -26,22 +26,9 @@ class SplashViewModel @Inject constructor(
     }
 
     init {
-//        firebaseRemote.ensureInitialized().addOnCompleteListener {
-//            val exists = userRepository.userExists()
-//            if (exists) {
-//                if (userRepository.isOnBoardingComplete()) {
-//                    navigator.navigateTo(Destination.Home.route, true)
-//                } else {
-//                    navigator.navigateTo(Destination.Onboarding.route, true)
-//                }
-//            } else {
-//                navigator.navigateTo(Destination.Login.route, true)
-//            }
         viewModelScope.launch{
-            println("Splash")
             val user = userRepository.getCurrentAuth()
-            println(user)
-//            delay(1000)
+            delay(1500)
             if(user === null){
                 navigator.navigateTo(Destination.Login.route, true)
             }else{
