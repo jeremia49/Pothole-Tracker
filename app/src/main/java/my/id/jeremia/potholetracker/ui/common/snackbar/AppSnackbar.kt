@@ -10,6 +10,7 @@ import my.id.jeremia.potholetracker.ui.theme.black
 import my.id.jeremia.potholetracker.ui.theme.info
 import my.id.jeremia.potholetracker.ui.theme.success
 import my.id.jeremia.potholetracker.ui.theme.warning
+import my.id.jeremia.potholetracker.ui.theme.white
 
 @Composable
 fun AppSnackbar(
@@ -31,8 +32,8 @@ fun AppSnackbar(
         Snackbar(
             snackbarData = it,
             containerColor = color,
-            contentColor = MaterialTheme.colorScheme.black,
-            actionColor = MaterialTheme.colorScheme.black
+            contentColor = MaterialTheme.colorScheme.white,
+            actionColor = MaterialTheme.colorScheme.white
         )
     }
 }

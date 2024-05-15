@@ -4,6 +4,7 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import my.id.jeremia.potholetracker.data.remote.utils.ForcedLogout
+import my.id.jeremia.potholetracker.data.repository.UserRepository
 import my.id.jeremia.potholetracker.ui.base.BaseViewModel
 import my.id.jeremia.potholetracker.ui.common.loader.Loader
 import my.id.jeremia.potholetracker.ui.common.snackbar.Messenger
@@ -18,6 +19,7 @@ class MainViewModel @Inject constructor(
     val loader: Loader,
     val navigator:Navigator,
     val messenger: Messenger,
+    val userRepository: UserRepository,
 ) :BaseViewModel(loader,messenger, navigator){
 
     companion object {
@@ -29,7 +31,7 @@ class MainViewModel @Inject constructor(
             forcedLogout.state
                 .collect {
                     if (it) {
-//                        userRepository.removeCurrentUser()
+                        userRepository.removeCurrentUser()
                         navigator.navigateTo(Destination.Login.route, true)
                     }
                 }

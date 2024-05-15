@@ -78,11 +78,11 @@ class LoginViewModel @Inject constructor(
                                 _passwordError.tryEmit("Email atau password yang anda masukkan salah")
                             }
 
-                            if(error!!.reason?.email?.isNotEmpty()!!){
-                                _emailError.tryEmit(error.reason!!.email!![0]!!)
+                            if(error.reason?.email != null){
+                                _emailError.tryEmit(error.reason.email[0]!!)
                             }
-                            if(error!!.reason?.password?.isNotEmpty()!!){
-                                _passwordError.tryEmit(error.reason!!.password!![0]!!)
+                            if(error.reason?.password != null){
+                                _passwordError.tryEmit(error.reason.password[0]!!)
                             }
                         }
 
