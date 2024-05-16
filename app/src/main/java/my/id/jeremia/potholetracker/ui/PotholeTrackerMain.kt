@@ -13,6 +13,7 @@ import my.id.jeremia.potholetracker.ui.common.loader.Loader
 import my.id.jeremia.potholetracker.ui.common.loader.Loading
 import my.id.jeremia.potholetracker.ui.common.snackbar.AppSnackbar
 import my.id.jeremia.potholetracker.ui.common.snackbar.Messenger
+import my.id.jeremia.potholetracker.ui.home.HomeBottomBar
 import my.id.jeremia.potholetracker.ui.navigation.NavGraph
 import my.id.jeremia.potholetracker.ui.navigation.Navigator
 import my.id.jeremia.potholetracker.ui.theme.PotholeTrackerTheme
@@ -30,8 +31,7 @@ fun PotholeTrackerMain(
         Scaffold(
             modifier = Modifier.imePadding(),
             snackbarHost = { AppSnackbar(snackbarHostState, messenger) },
-            // it will render bottom bar only in the home route
-//            bottomBar = { HomeBottomBar(navController = navController) },
+            bottomBar = { HomeBottomBar(navController = navController) },
         ) { innerPaddingModifier ->
             NavGraph(
                 navController = navController,

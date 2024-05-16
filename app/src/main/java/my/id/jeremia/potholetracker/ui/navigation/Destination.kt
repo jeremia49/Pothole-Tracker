@@ -14,7 +14,9 @@ object Destination {
     data object Home:Screen("/home"){
 
         data object Find:Screen("/home/find")
-
+        data object Data:Screen("/home/data")
+        data object Contribute:Screen("/home/contribute")
+        data object MyAccount:Screen("/home/myaccount")
     }
 
     abstract class Screen(baseRoute: String) {

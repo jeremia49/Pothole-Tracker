@@ -62,8 +62,6 @@ dependencies {
     //DataStore
     implementation("androidx.datastore:datastore-preferences:1.1.1")
 
-
-
     // Network
     val retrofit2 = "2.11.0"
     implementation("com.squareup.retrofit2:retrofit:$retrofit2")

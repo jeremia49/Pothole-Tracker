@@ -13,4 +13,8 @@
     <string name="network_server_not_available">Network server tidak tersedia</string>
     <string name="something_went_wrong">Something went wrong</string>
     <string name="daftar">Daftar</string>
+    <string name="FIND_title">Temukan</string>
+    <string name="DATA_title">Data</string>
+    <string name="KONTRIBUSI_title">Kontribusi</string>
+    <string name="MYACCOUNT_title">My Account</string>
 </resources>
