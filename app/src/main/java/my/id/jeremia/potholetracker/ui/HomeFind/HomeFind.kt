@@ -53,6 +53,12 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.google.android.gms.maps.model.CameraPosition
+import com.google.android.gms.maps.model.LatLng
+import com.google.maps.android.compose.GoogleMap
+import com.google.maps.android.compose.Marker
+import com.google.maps.android.compose.MarkerState
+import com.google.maps.android.compose.rememberCameraPositionState
 import my.id.jeremia.potholetracker.R
 import my.id.jeremia.potholetracker.ui.theme.grey
 import my.id.jeremia.potholetracker.ui.theme.manropeFontFamily
@@ -63,7 +69,6 @@ fun HomeFind(modifier: Modifier = Modifier, viewModel: HomeFindViewModel) {
     BackHandler { viewModel.navigator.finish() }
     HomeFindView(
         modifier,
-        viewModel.userDataStore.getUserName().collectAsStateWithLifecycle("").value!!
     )
 }
 
@@ -71,16 +76,31 @@ fun HomeFind(modifier: Modifier = Modifier, viewModel: HomeFindViewModel) {
 @Composable
 fun HomeFindView(
     modifier: Modifier = Modifier,
-    username:String="Hello World !",
 ) {
 
     Box(
         modifier = modifier
             .fillMaxSize()
-            .padding(20.dp)
+            .padding(0.dp)
     ) {
 
-        Text(username)
+        val singapore = LatLng(1.35, 103.87)
+        val cameraPositionState = rememberCameraPositionState {
+            position = CameraPosition.fromLatLngZoom(singapore, 10f)
+        }
+
+        GoogleMap(
+            modifier = Modifier.fillMaxSize(),
+            cameraPositionState = cameraPositionState
+        ) {
+            Marker(
+                state = MarkerState(position = singapore),
+                title = "Singapore",
+                snippet = "Marker in Singapore"
+            )
+        }
+
+
     }
 }
 

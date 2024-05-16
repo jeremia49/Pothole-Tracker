@@ -15,7 +15,6 @@ class HomeFindViewModel @Inject constructor(
     val navigator: Navigator,
     val messenger: Messenger,
     val loader: Loader,
-    val userDataStore: UserDataStore,
 ) : BaseViewModel(
     loader,
     messenger,
