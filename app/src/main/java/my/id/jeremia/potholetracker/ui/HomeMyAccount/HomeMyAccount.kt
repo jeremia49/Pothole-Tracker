@@ -23,9 +23,12 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -37,6 +40,8 @@ import com.google.maps.android.compose.Marker
 import com.google.maps.android.compose.MarkerState
 import com.google.maps.android.compose.rememberCameraPositionState
 import my.id.jeremia.potholetracker.R
+import my.id.jeremia.potholetracker.ui.common.image.NetworkImage
+import my.id.jeremia.potholetracker.utils.crypto.hashSHA256
 
 @Composable
 fun HomeMyAccount(modifier: Modifier = Modifier, viewModel: HomeMyAccountViewModel) {
@@ -57,6 +62,10 @@ fun HomeMyAccountView(
     username:String ="Jeremia Manurung",
     email:String="jeremiaman49@gmail.com",
 ) {
+    val emailHash = remember(email){
+        mutableStateOf(hashSHA256(email.lowercase()))
+    }
+
     Column(
         modifier = modifier
     ) {
@@ -69,11 +78,20 @@ fun HomeMyAccountView(
             verticalArrangement = Arrangement.Top,
         ) {
 
-            Image(
-                painter = painterResource(id = R.drawable.account_circle),
-                "UserAccountLogo",
+//            Image(
+//                painter = painterResource(id = R.drawable.account_circle),
+//                "UserAccountLogo",
+//                modifier = Modifier
+//                    .size(150.dp),
+//            )
+
+            NetworkImage(
+                url = "https://www.gravatar.com/avatar/${emailHash.value}",
+                contentDescription = "User Avatar",
+                contentScale = ContentScale.Fit,
                 modifier = Modifier
-                    .size(150.dp),
+                    .size(150.dp)
+                    .padding(bottom = 15.dp),
             )
 
             Text(username)

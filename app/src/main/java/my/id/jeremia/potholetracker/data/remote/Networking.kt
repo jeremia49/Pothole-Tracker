@@ -48,6 +48,20 @@ object Networking {
             .build()
     }
 
+    fun createOkHttpClientForImage(
+        cacheDir: File,
+        cacheSize: Long,
+    ): OkHttpClient{
+        return OkHttpClient.Builder()
+            .addInterceptor(getHttpLoggingInterceptor())
+            .cache(Cache(cacheDir,cacheSize))
+            .readTimeout(NETWORK_CALL_TIMEOUT.toLong(), TimeUnit.SECONDS)
+            .writeTimeout(NETWORK_CALL_TIMEOUT.toLong(), TimeUnit.SECONDS)
+            .build()
+    }
+
+
+
 
 
 

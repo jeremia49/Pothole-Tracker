@@ -77,6 +77,14 @@ secrets {
 
 dependencies {
 
+    //Cryptography tool
+    implementation("com.google.guava:guava:33.2.0-android")
+
+    // Image Coil
+    val coil = "2.6.0"
+    implementation("io.coil-kt:coil:$coil")
+    implementation("io.coil-kt:coil-compose:$coil")
+
     //Google Maps SDK
     implementation("com.google.maps.android:maps-ktx:5.0.0")
     implementation("com.google.maps.android:maps-compose:5.0.1")
