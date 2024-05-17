@@ -2,6 +2,7 @@ package my.id.jeremia.potholetracker.data.remote
 
 import com.squareup.moshi.Moshi
 import my.id.jeremia.potholetracker.BuildConfig
+import my.id.jeremia.potholetracker.data.remote.interceptors.RequestHeaderInterceptor
 import okhttp3.Cache
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
@@ -35,9 +36,11 @@ object Networking {
 
     fun createOkHttpClient(
         cacheDir: File,
-        cacheSize: Long
+        cacheSize: Long,
+        requestHeaderInterceptor: RequestHeaderInterceptor,
     ): OkHttpClient{
         return OkHttpClient.Builder()
+            .addInterceptor(requestHeaderInterceptor)
             .addInterceptor(getHttpLoggingInterceptor())
             .cache(Cache(cacheDir,cacheSize))
             .readTimeout(NETWORK_CALL_TIMEOUT.toLong(), TimeUnit.SECONDS)

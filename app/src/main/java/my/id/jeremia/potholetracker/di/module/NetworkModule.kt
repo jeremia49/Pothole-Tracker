@@ -9,6 +9,9 @@ import dagger.hilt.components.SingletonComponent
 import my.id.jeremia.potholetracker.BuildConfig
 import my.id.jeremia.potholetracker.data.remote.Networking
 import my.id.jeremia.potholetracker.data.remote.apis.auth.AuthAPI
+import my.id.jeremia.potholetracker.data.remote.interceptors.RequestHeaderInterceptor
+import my.id.jeremia.potholetracker.data.repository.UserRepository
+import my.id.jeremia.potholetracker.di.qualifier.AccessToken
 import my.id.jeremia.potholetracker.di.qualifier.BaseUrl
 import okhttp3.OkHttpClient
 import javax.inject.Singleton
@@ -17,14 +20,15 @@ import javax.inject.Singleton
 @InstallIn(SingletonComponent::class)
 object NetworkModule {
 
-
     @Provides
     @Singleton
     fun provideApiOkHttpClient(
         @ApplicationContext context: Context,
+        requestHeaderInterceptor: RequestHeaderInterceptor,
     ): OkHttpClient = Networking.createOkHttpClient(
         context.cacheDir,
-        100 * 1024 * 1024
+        100 * 1024 * 1024,
+        requestHeaderInterceptor,
     )
 
     @Provides

@@ -42,4 +42,8 @@ class UserRepository @Inject constructor(
         return null
     }
 
+    suspend fun getCurrentAccessToken():String?{
+       return userDataStore.getAccessToken().first()
+    }
+
 }

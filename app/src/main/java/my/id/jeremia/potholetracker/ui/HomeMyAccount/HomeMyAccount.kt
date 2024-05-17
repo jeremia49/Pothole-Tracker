@@ -22,12 +22,14 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
 import com.google.maps.android.compose.GoogleMap
@@ -41,6 +43,9 @@ fun HomeMyAccount(modifier: Modifier = Modifier, viewModel: HomeMyAccountViewMod
     BackHandler { viewModel.navigator.finish() }
     HomeMyAccountView(
         modifier,
+        doLogout = {viewModel.doLogout()},
+        username = viewModel.username.collectAsState(initial = "").value ?: "",
+        email = viewModel.email.collectAsState(initial = "").value ?: "",
     )
 }
 
@@ -48,6 +53,9 @@ fun HomeMyAccount(modifier: Modifier = Modifier, viewModel: HomeMyAccountViewMod
 @Composable
 fun HomeMyAccountView(
     modifier: Modifier = Modifier,
+    doLogout: () -> Unit = {},
+    username:String ="Jeremia Manurung",
+    email:String="jeremiaman49@gmail.com",
 ) {
     Column(
         modifier = modifier
@@ -56,7 +64,7 @@ fun HomeMyAccountView(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(top=40.dp),
+                .padding(top = 40.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Top,
         ) {
@@ -68,33 +76,33 @@ fun HomeMyAccountView(
                     .size(150.dp),
             )
 
-            Text("Jeremia Manurung",)
-
-            Text("Email: jeremiamanurungganteng@gmail.com")
-
+            Text(username)
+            Text("Email: ${email}")
         }
 
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(top = 50.dp, start = 10.dp)
+                .padding(top = 50.dp)
         ) {
 
 
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
+                    .height(50.dp)
                     .clickable {
-                               println("Keluar")
+                        doLogout();
                     },
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Image(
                     painter = painterResource(id = R.drawable.logout),
                     contentDescription = "Logout",
-                    modifier=Modifier
-                        .size(50.dp)
-                        .padding(end = 25.dp)
+                    modifier = Modifier
+                        .padding(start = 30.dp, end = 25.dp)
+                        .size(30.dp)
+
                 )
                 Text("Keluar")
             }
