@@ -47,7 +47,7 @@ android {
     }
     buildFeatures {
         compose = true
-        buildConfig=true
+        buildConfig = true
     }
     composeOptions {
         kotlinCompilerExtensionVersion = "1.5.10"
@@ -76,6 +76,19 @@ secrets {
 
 
 dependencies {
+    //Permissions
+    implementation("com.google.accompanist:accompanist-permissions:0.35.0-alpha")
+
+    //CameraX
+    val camerax_version = "1.3.2"
+    implementation ("androidx.camera:camera-core:${camerax_version}")
+    implementation ("androidx.camera:camera-camera2:${camerax_version}")
+    implementation ("androidx.camera:camera-lifecycle:${camerax_version}")
+    implementation ("androidx.camera:camera-video:${camerax_version}")
+
+    implementation ("androidx.camera:camera-view:${camerax_version}")
+    implementation ("androidx.camera:camera-extensions:${camerax_version}")
+
 
     //Cryptography tool
     implementation("com.google.guava:guava:33.2.0-android")
