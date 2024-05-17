@@ -8,8 +8,13 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navigation
+import my.id.jeremia.potholetracker.ui.HomeContribute.HomeContribute
+import my.id.jeremia.potholetracker.ui.HomeContribute.HomeContributeViewModel
 import my.id.jeremia.potholetracker.ui.HomeFind.HomeFind
 import my.id.jeremia.potholetracker.ui.HomeFind.HomeFindViewModel
+import my.id.jeremia.potholetracker.ui.HomeListData.HomeListData
+import my.id.jeremia.potholetracker.ui.HomeListData.HomeListDataView
+import my.id.jeremia.potholetracker.ui.HomeListData.HomeListDataViewModel
 import my.id.jeremia.potholetracker.ui.HomeMyAccount.HomeMyAccount
 import my.id.jeremia.potholetracker.ui.HomeMyAccount.HomeMyAccountViewModel
 import my.id.jeremia.potholetracker.ui.login.Login
@@ -65,10 +70,21 @@ fun NavGraph(
                 HomeFind(modifier,viewModel)
             }
 
+            composable(Destination.Home.Data.route){
+                val viewModel : HomeListDataViewModel = hiltViewModel(key=HomeListDataViewModel.TAG)
+                HomeListData(modifier,viewModel)
+            }
+
+            composable(Destination.Home.Contribute.route){
+                val viewModel : HomeContributeViewModel = hiltViewModel(key=HomeContributeViewModel.TAG)
+                HomeContribute(modifier,viewModel)
+            }
+
             composable(Destination.Home.MyAccount.route){
                 val viewModel : HomeMyAccountViewModel = hiltViewModel(key=HomeMyAccountViewModel.TAG)
                 HomeMyAccount(modifier,viewModel)
             }
+
 
         }
 
