@@ -11,8 +11,11 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeContentPadding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -46,15 +49,14 @@ fun HomeMyAccount(modifier: Modifier = Modifier, viewModel: HomeMyAccountViewMod
 fun HomeMyAccountView(
     modifier: Modifier = Modifier,
 ) {
-
     Column(
-        modifier = Modifier
-            .fillMaxSize()
+        modifier = modifier
     ) {
 
         Column(
             modifier = Modifier
-                .fillMaxWidth(),
+                .fillMaxWidth()
+                .padding(top=40.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Top,
         ) {
@@ -62,14 +64,11 @@ fun HomeMyAccountView(
             Image(
                 painter = painterResource(id = R.drawable.account_circle),
                 "UserAccountLogo",
-                modifier = modifier
-                    .width(150.dp)
-                    .height(150.dp)
-                    .padding(top=50.dp, bottom = 0.dp)
-                    .border(1.dp,Color.Black)
+                modifier = Modifier
+                    .size(150.dp),
             )
 
-            Text("Jeremia Manurung")
+            Text("Jeremia Manurung",)
 
             Text("Email: jeremiamanurungganteng@gmail.com")
 
@@ -89,7 +88,6 @@ fun HomeMyAccountView(
                                println("Keluar")
                     },
                 verticalAlignment = Alignment.CenterVertically,
-
             ) {
                 Image(
                     painter = painterResource(id = R.drawable.logout),
