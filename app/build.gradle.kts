@@ -48,6 +48,7 @@ android {
     buildFeatures {
         compose = true
         buildConfig = true
+        viewBinding = true
     }
     composeOptions {
         kotlinCompilerExtensionVersion = "1.5.10"
@@ -78,6 +79,10 @@ secrets {
 dependencies {
     //Permissions
     implementation("com.google.accompanist:accompanist-permissions:0.35.0-alpha")
+    implementation(libs.androidx.appcompat)
+    implementation(libs.material)
+    implementation(libs.androidx.activity)
+    implementation(libs.androidx.constraintlayout)
 
     //CameraX
     val camerax_version = "1.3.2"

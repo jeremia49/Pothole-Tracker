@@ -16,88 +16,55 @@ import my.id.jeremia.potholetracker.utils.common.askPermission
 import my.id.jeremia.potholetracker.utils.common.checkPermission
 
 @Composable
-fun askPermissionView(
+fun AskPermissionView(
     modifier: Modifier,
-    context: Context,
+    viewModel: HomeContributeViewModel
 ) {
 
-    val cameraPermission = remember() {
-        mutableStateOf(
-            checkPermission(
-                context, arrayOf(Manifest.permission.CAMERA)
-            )
-        )
-    }
-
-    val locationPermission = remember() {
-        mutableStateOf(
-            checkPermission(
-                context,
-                arrayOf(
-                    Manifest.permission.ACCESS_COARSE_LOCATION,
-                    Manifest.permission.ACCESS_FINE_LOCATION
-                )
-            )
-        )
-    }
-
-    println(cameraPermission.value)
-    println(locationPermission.value)
 
     val launcherMultiplePermissions = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions()
     ) { _ ->
-        cameraPermission.value = checkPermission(
-            context, arrayOf(Manifest.permission.CAMERA)
-        )
-
-        locationPermission.value = checkPermission(
-            context,
-            arrayOf(
-                Manifest.permission.ACCESS_COARSE_LOCATION,
-                Manifest.permission.ACCESS_FINE_LOCATION
-            )
-        )
+        viewModel.updatePermissionState();
+        println("Upgrade")
     }
 
-    if (!cameraPermission.value || !locationPermission.value) {
-        Text(
-            "Camera Permission : ${cameraPermission.value}",
-        )
-        if (!cameraPermission.value) {
-            ElevatedButton(
-                onClick = {
-                    askPermission(
-                        arrayOf(Manifest.permission.CAMERA),
-                        launcherMultiplePermissions
-                    )
-                },
-                modifier = Modifier.padding(top = 10.dp)
-            ) {
-                Text("Perbolehkan akses kamera")
-            }
-        }
 
-        Text(
-            "Location Permission : ${locationPermission.value}",
-        )
-        if (!locationPermission.value) {
-            ElevatedButton(
-                onClick = {
-                    askPermission(
-                        arrayOf(
-                            Manifest.permission.ACCESS_COARSE_LOCATION,
-                            Manifest.permission.ACCESS_FINE_LOCATION,
-                        ),
-                        launcherMultiplePermissions
-                    )
-                },
-                modifier = Modifier.padding(top = 10.dp)
-            ) {
-                Text("Perbolehkan akses lokasi")
-            }
+    Text(
+        "Camera Permission : ${viewModel.cameraPermission.value}",
+    )
+    if (!viewModel.cameraPermission.value) {
+        ElevatedButton(
+            onClick = {
+                askPermission(
+                    arrayOf(Manifest.permission.CAMERA),
+                    launcherMultiplePermissions
+                )
+            },
+            modifier = Modifier.padding(top = 10.dp)
+        ) {
+            Text("Perbolehkan akses kamera")
         }
+    }
 
+    Text(
+        "Location Permission : ${viewModel.locationPermission.value}",
+    )
+    if (!viewModel.locationPermission.value) {
+        ElevatedButton(
+            onClick = {
+                askPermission(
+                    arrayOf(
+                        Manifest.permission.ACCESS_COARSE_LOCATION,
+                        Manifest.permission.ACCESS_FINE_LOCATION,
+                    ),
+                    launcherMultiplePermissions
+                )
+            },
+            modifier = Modifier.padding(top = 10.dp)
+        ) {
+            Text("Perbolehkan akses lokasi")
+        }
     }
 
 

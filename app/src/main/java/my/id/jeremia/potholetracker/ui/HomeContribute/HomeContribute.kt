@@ -1,6 +1,7 @@
 package my.id.jeremia.potholetracker.ui.HomeContribute
 
 import android.Manifest
+import android.content.Intent
 import android.location.LocationRequest
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -17,6 +18,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.ElevatedButton
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -31,6 +33,8 @@ import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.google.accompanist.permissions.rememberPermissionState
 import my.id.jeremia.potholetracker.R
 import my.id.jeremia.potholetracker.ui.common.image.NetworkImage
@@ -43,6 +47,7 @@ fun HomeContribute(modifier: Modifier = Modifier, viewModel: HomeContributeViewM
     BackHandler { viewModel.navigator.finish() }
     HomeContributeView(
         modifier,
+        viewModel
     )
 }
 
@@ -50,44 +55,38 @@ fun HomeContribute(modifier: Modifier = Modifier, viewModel: HomeContributeViewM
 @Composable
 fun HomeContributeView(
     modifier: Modifier = Modifier,
+    viewModel: HomeContributeViewModel = hiltViewModel()
 ) {
-
-    val scope = rememberCoroutineScope()
-    val lifecycleOwner = LocalLifecycleOwner.current
     val context = LocalContext.current
-
     Box(
         modifier = modifier
             .fillMaxSize()
     ) {
         Column(
             modifier = Modifier
-                .fillMaxWidth()
-                .padding(
-                    top =
-                    20.dp
-                ),
+                .fillMaxWidth(),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            askPermissionView(modifier = Modifier, context = context)
+
+            if (!viewModel.cameraPermission.value || !viewModel.locationPermission.value) {
+                AskPermissionView(modifier = Modifier, viewModel)
+            }else{
+                OutlinedButton(onClick = {
+                    context.startActivity(Intent(context, ContributeActivity::class.java))
+                }) {
+                    Text("Mulai Kontribusi")
+                }
+            }
+
         }
     }
-
-//    val locationPermission = remember {
-//        mutableStateOf(checkPermission(
-//            context, arrayOf(Manifest.permission.CAMERA)
-//        ))
-//    }
-
-
-//    val cameraPermissionState = rememberPermissionState(Manifest.permission.CAMERA)
 
 
 }
 
 @Preview(showBackground = true)
 @Composable
-private fun HomeMyAccountPreview() {
+private fun HomeContributePreview() {
     HomeContributeView(
     )
 }
