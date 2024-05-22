@@ -38,6 +38,10 @@ class ContributeViewModel @Inject constructor(
     val locationData: LiveData<Location>
         get() = _locationData
 
+    private val _currentImage = MutableLiveData<Bitmap>()
+    val currentImage: LiveData<Bitmap>
+        get() = _currentImage
+
 
     init {
         locationRequest.startLocationUpdate {
@@ -88,7 +92,13 @@ class ContributeViewModel @Inject constructor(
         }
     }
 
+    fun updateCurrentImage(image: Bitmap){
+        _currentImage.postValue(image)
+    }
 
+    fun toggleInference() {
+        _isInferenceStarted.value = !_isInferenceStarted.value!!
+    }
 
 
 }

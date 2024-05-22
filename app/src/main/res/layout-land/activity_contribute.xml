@@ -4,7 +4,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <androidx.camera.view.PreviewView
+    <ImageView
         android:id="@+id/viewFinder"
         android:layout_width="0dp"
         android:layout_height="match_parent"
@@ -54,28 +54,21 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent">
 
-        <ImageButton
-            android:id="@+id/switchviewbtn"
-            android:layout_width="30dp"
-            android:layout_height="30dp"
-            android:layout_margin="5dp"
-            android:src="@drawable/baseline_collections_24" />
-
-        <ImageButton
+        <ImageView
             android:id="@+id/settingsbtn"
             android:layout_width="30dp"
             android:layout_height="30dp"
             android:layout_margin="5dp"
             android:src="@drawable/baseline_settings_24" />
 
-        <ImageButton
+        <ImageView
             android:id="@+id/cropbtn"
             android:layout_width="30dp"
             android:layout_height="30dp"
             android:layout_margin="5dp"
             android:src="@drawable/baseline_crop_24" />
 
-        <ImageButton
+        <ImageView
             android:id="@+id/startstopbtn"
             android:layout_width="30dp"
             android:layout_height="30dp"
@@ -97,16 +90,17 @@
         />
 
     <com.google.android.gms.maps.MapView
+        xmlns:map="http://schemas.android.com/apk/res-auto"
         android:id="@+id/mapView"
         android:layout_width="0dp"
         android:layout_height="0dp"
+        android:layout_marginTop="10dp"
         android:background="#00000000"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="@id/guideline"
         app:layout_constraintTop_toBottomOf="@+id/contentText"
-        app:uiCompass="true"
-        app:uiZoomControls="true"
-        app:zOrderOnTop="true" />
+        map:cameraZoom="15"
+        />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

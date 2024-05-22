@@ -1,11 +1,13 @@
 package my.id.jeremia.potholetracker.ui.HomeContribute
 
+import android.content.Context
 import android.os.Bundle
 import android.util.Log
 import android.view.View
 import androidx.activity.ComponentActivity
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
+import androidx.appcompat.content.res.AppCompatResources
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.ImageAnalysis
 import androidx.camera.core.Preview
@@ -20,15 +22,18 @@ import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MarkerOptions
 import dagger.hilt.android.AndroidEntryPoint
+import dagger.hilt.android.qualifiers.ApplicationContext
+import my.id.jeremia.potholetracker.R
 import my.id.jeremia.potholetracker.databinding.ActivityContributeBinding
 import my.id.jeremia.potholetracker.utils.camera.Analyzer
 import java.lang.Thread.sleep
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
+import javax.inject.Inject
 
 
 @AndroidEntryPoint
-class ContributeActivity : ComponentActivity(), OnMapReadyCallback {
+class ContributeActivity : ComponentActivity() {
 
     val viewModel: ContributeViewModel by viewModels()
     private lateinit var viewBinding: ActivityContributeBinding
@@ -37,6 +42,55 @@ class ContributeActivity : ComponentActivity(), OnMapReadyCallback {
     private lateinit var mMapView: MapView
     private val MAPVIEW_BUNDLE_KEY = "MapViewBundleKey"
     private var googleMap : GoogleMap? = null
+
+    private fun initializeUI(){
+        viewBinding.startstopbtn.setOnClickListener {
+            viewModel.toggleInference()
+        }
+
+        viewModel.isCameraActive.observe(this) {
+            if (it) {
+                viewBinding.cameraicon.visibility = View.VISIBLE
+            } else {
+                viewBinding.cameraicon.visibility = View.INVISIBLE
+            }
+        }
+
+        viewModel.isGPSActive.observe(this) {
+            if (it) {
+                viewBinding.gpsicon.visibility = View.VISIBLE
+            } else {
+                viewBinding.gpsicon.visibility = View.INVISIBLE
+            }
+        }
+
+        viewModel.currentImage.observe(this) {
+            viewBinding.viewFinder.setImageBitmap(it)
+        }
+
+        viewModel.locationData.observe(this) {
+            updateText()
+            if(googleMap!=null){
+                val cameraUpdate = CameraUpdateFactory.newLatLngZoom(LatLng(viewModel.locationData.value!!.latitude, viewModel.locationData.value!!.longitude), 17f)
+                googleMap!!.clear()
+                googleMap!!.addMarker(
+                    MarkerOptions()
+                        .position(LatLng(viewModel.locationData.value!!.latitude, viewModel.locationData.value!!.longitude))
+                        .title("Posisi kamu")
+                )
+                googleMap!!.animateCamera(cameraUpdate)
+            }
+        }
+
+        viewModel.isInferenceStarted.observe(this){
+            if(it){
+                viewBinding.startstopbtn.setImageDrawable(AppCompatResources.getDrawable (this,R.drawable.baseline_stop_24))
+            }else{
+                viewBinding.startstopbtn.setImageDrawable(AppCompatResources.getDrawable (this,R.drawable.baseline_play_arrow_24))
+            }
+        }
+
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -57,44 +111,11 @@ class ContributeActivity : ComponentActivity(), OnMapReadyCallback {
         if (savedInstanceState != null) {
             mapViewBundle = savedInstanceState.getBundle(MAPVIEW_BUNDLE_KEY)
         }
-        mMapView = viewBinding.mapView as MapView;
+        mMapView = viewBinding.mapView
         mMapView.onCreate(mapViewBundle);
 
-        mMapView.getMapAsync(this);
-
-        viewModel.isCameraActive.observe(this) {
-            if (it) {
-                viewBinding.cameraicon.visibility = View.VISIBLE
-            } else {
-                viewBinding.cameraicon.visibility = View.INVISIBLE
-            }
-        }
-
-        viewModel.isGPSActive.observe(this) {
-            if (it) {
-                viewBinding.gpsicon.visibility = View.VISIBLE
-            } else {
-                viewBinding.gpsicon.visibility = View.INVISIBLE
-            }
-        }
-
-        viewModel.locationData.observe(this) {
-            updateText()
-            if(googleMap!=null){
-                val cameraUpdate = CameraUpdateFactory.newLatLngZoom(LatLng(viewModel.locationData.value!!.latitude, viewModel.locationData.value!!.longitude), 17f)
-                googleMap!!.clear()
-                googleMap!!.addMarker(
-                    MarkerOptions()
-                        .position(LatLng(viewModel.locationData.value!!.latitude, viewModel.locationData.value!!.longitude))
-                        .title("Posisi kamu")
-                )
-                googleMap!!.animateCamera(cameraUpdate)
-
-            }
-
-        }
-
-
+        mMapView.getMapAsync { p0 -> googleMap = p0 };
+        initializeUI();
     }
 
     fun updateText() {
@@ -114,25 +135,17 @@ class ContributeActivity : ComponentActivity(), OnMapReadyCallback {
             // Used to bind the lifecycle of cameras to the lifecycle owner
             val cameraProvider: ProcessCameraProvider = cameraProviderFuture.get()
 
-            //Preview
-            val preview = Preview.Builder()
-                .build()
-                .also {
-                    it.setSurfaceProvider(viewBinding.viewFinder.surfaceProvider)
-                }
-
             val imageAnalyzer = ImageAnalysis.Builder()
                 .build()
                 .also {
                     it.setAnalyzer(cameraExecutor, Analyzer { bp ->
-                        sleep(1000)
                         viewModel.setCameraActive()
-                        viewModel.addInference(bp)
+                        viewModel.updateCurrentImage(bp)
+//                        viewModel.addInference(bp)
 //                        Log.d(TAG, "called")
 //
 //                        sleep(2000)
-
-                        sleep(2000)
+                        sleep(500)
                     })
                 }
 
@@ -147,7 +160,6 @@ class ContributeActivity : ComponentActivity(), OnMapReadyCallback {
                 cameraProvider.bindToLifecycle(
                     this,
                     cameraSelector,
-                    preview,
                     imageAnalyzer
                 )
 
@@ -160,15 +172,6 @@ class ContributeActivity : ComponentActivity(), OnMapReadyCallback {
 
     companion object {
         private const val TAG = "ContributeActivity"
-    }
-
-    override fun onMapReady(p0: GoogleMap) {
-        googleMap = p0
-//        p0.addMarker(
-//            MarkerOptions()
-//                .position(LatLng(0.0, 0.0))
-//                .title("Marker")
-//        )
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
