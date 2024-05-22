@@ -27,6 +27,7 @@ android {
     buildTypes {
         debug{
             buildConfigField("String","BASE_URL", "\"http://10.0.2.2:8000/\"")
+//            buildConfigField("String","BASE_URL", "\"http://192.168.1.114:8000/\"")
         }
         release {
             buildConfigField("String","BASE_URL","\"https://potholetracker.jeremia.my.id\"")
@@ -110,7 +111,7 @@ dependencies {
     //Google Maps SDK
     implementation("com.google.maps.android:maps-ktx:5.0.0")
     implementation("com.google.maps.android:maps-compose:5.0.1")
-
+    implementation ("com.google.android.gms:play-services-maps:18.2.0")
 
     //DataStore
     implementation("androidx.datastore:datastore-preferences:1.1.1")

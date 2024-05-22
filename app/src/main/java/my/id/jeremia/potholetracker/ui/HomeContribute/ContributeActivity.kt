@@ -13,21 +13,30 @@ import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import com.google.android.gms.maps.CameraUpdateFactory
+import com.google.android.gms.maps.GoogleMap
+import com.google.android.gms.maps.MapView
+import com.google.android.gms.maps.OnMapReadyCallback
+import com.google.android.gms.maps.model.LatLng
+import com.google.android.gms.maps.model.MarkerOptions
 import dagger.hilt.android.AndroidEntryPoint
 import my.id.jeremia.potholetracker.databinding.ActivityContributeBinding
 import my.id.jeremia.potholetracker.utils.camera.Analyzer
 import java.lang.Thread.sleep
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
-import kotlin.math.floor
+
 
 @AndroidEntryPoint
-class ContributeActivity : ComponentActivity() {
+class ContributeActivity : ComponentActivity(), OnMapReadyCallback {
 
     val viewModel: ContributeViewModel by viewModels()
     private lateinit var viewBinding: ActivityContributeBinding
-
     private lateinit var cameraExecutor: ExecutorService
+
+    private lateinit var mMapView: MapView
+    private val MAPVIEW_BUNDLE_KEY = "MapViewBundleKey"
+    private var googleMap : GoogleMap? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -37,16 +46,21 @@ class ContributeActivity : ComponentActivity() {
 
         cameraExecutor = Executors.newSingleThreadExecutor()
         startCamera()
-//        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
-//            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
-//            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
-//            insets
-//        }
+
         ViewCompat.setOnApplyWindowInsetsListener(viewBinding.root) { v, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
             insets
         }
+
+        var mapViewBundle: Bundle? = null
+        if (savedInstanceState != null) {
+            mapViewBundle = savedInstanceState.getBundle(MAPVIEW_BUNDLE_KEY)
+        }
+        mMapView = viewBinding.mapView as MapView;
+        mMapView.onCreate(mapViewBundle);
+
+        mMapView.getMapAsync(this);
 
         viewModel.isCameraActive.observe(this) {
             if (it) {
@@ -64,27 +78,33 @@ class ContributeActivity : ComponentActivity() {
             }
         }
 
-        viewModel.locationData.observe(this){
+        viewModel.locationData.observe(this) {
             updateText()
+            if(googleMap!=null){
+                val cameraUpdate = CameraUpdateFactory.newLatLngZoom(LatLng(viewModel.locationData.value!!.latitude, viewModel.locationData.value!!.longitude), 17f)
+                googleMap!!.clear()
+                googleMap!!.addMarker(
+                    MarkerOptions()
+                        .position(LatLng(viewModel.locationData.value!!.latitude, viewModel.locationData.value!!.longitude))
+                        .title("Posisi kamu")
+                )
+                googleMap!!.animateCamera(cameraUpdate)
+
+            }
+
         }
 
 
-
     }
 
-    fun updateText(){
+    fun updateText() {
         viewBinding.contentText.setText(
             "Latitude : ${viewModel.locationData.value?.latitude}\n" +
-            "Longitude : ${viewModel.locationData.value?.longitude}\n" +
-            "Speed : ${viewModel.locationData.value?.speed?.times(3.6)} km/h\n" +
-            "Accuracy : ${viewModel.locationData.value?.accuracy}\n" +
-            "Speed Accuracy : ${viewModel.locationData.value?.speedAccuracy}\n"
+                    "Longitude : ${viewModel.locationData.value?.longitude}\n" +
+                    "Speed : ${viewModel.locationData.value?.speed?.times(3.6)} km/h\n" +
+                    "Accuracy : ${viewModel.locationData.value?.accuracy}\n" +
+                    "Speed Accuracy : ${viewModel.locationData.value?.speedAccuracy}\n"
         )
-    }
-
-    override fun onDestroy() {
-        super.onDestroy()
-        cameraExecutor.shutdown()
     }
 
     private fun startCamera() {
@@ -140,6 +160,58 @@ class ContributeActivity : ComponentActivity() {
 
     companion object {
         private const val TAG = "ContributeActivity"
+    }
+
+    override fun onMapReady(p0: GoogleMap) {
+        googleMap = p0
+//        p0.addMarker(
+//            MarkerOptions()
+//                .position(LatLng(0.0, 0.0))
+//                .title("Marker")
+//        )
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+
+        var mapViewBundle: Bundle? = outState.getBundle(MAPVIEW_BUNDLE_KEY)
+        if (mapViewBundle == null) {
+            mapViewBundle = Bundle()
+            outState.putBundle(MAPVIEW_BUNDLE_KEY, mapViewBundle)
+        }
+
+        mMapView.onSaveInstanceState(mapViewBundle)
+    }
+
+    override fun onResume() {
+        super.onResume()
+        mMapView.onResume()
+    }
+
+    override fun onStart() {
+        super.onStart()
+        mMapView.onStart()
+    }
+
+    override fun onStop() {
+        super.onStop()
+        mMapView.onStop()
+    }
+
+    override fun onPause() {
+        mMapView.onPause()
+        super.onPause()
+    }
+
+    override fun onLowMemory() {
+        super.onLowMemory()
+        mMapView.onLowMemory()
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        mMapView.onDestroy()
+        cameraExecutor.shutdown()
     }
 
 }
