@@ -83,6 +83,9 @@ dependencies {
     implementation(libs.androidx.activity)
     implementation(libs.androidx.constraintlayout)
 
+    // UI Image Cropper
+    implementation("com.vanniktech:android-image-cropper:4.5.0")
+
     //Location
     implementation("com.google.android.gms:play-services-location:21.2.0")
 

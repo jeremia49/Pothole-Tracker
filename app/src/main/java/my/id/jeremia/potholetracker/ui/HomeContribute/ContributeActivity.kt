@@ -1,35 +1,40 @@
 package my.id.jeremia.potholetracker.ui.HomeContribute
 
-import android.content.Context
+import android.app.Activity
+import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import android.view.View
 import androidx.activity.ComponentActivity
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.appcompat.content.res.AppCompatResources
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.ImageAnalysis
-import androidx.camera.core.Preview
 import androidx.camera.lifecycle.ProcessCameraProvider
+import androidx.compose.ui.graphics.asAndroidBitmap
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.MapView
-import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MarkerOptions
 import dagger.hilt.android.AndroidEntryPoint
-import dagger.hilt.android.qualifiers.ApplicationContext
 import my.id.jeremia.potholetracker.R
+import my.id.jeremia.potholetracker.data.model.Image
 import my.id.jeremia.potholetracker.databinding.ActivityContributeBinding
 import my.id.jeremia.potholetracker.utils.camera.Analyzer
+import my.id.jeremia.potholetracker.utils.image.saveBitmapToFile
+import my.id.jeremia.potholetracker.utils.image.saveBitmapWithFilenameToFile
+import java.io.File
+import java.io.FileOutputStream
 import java.lang.Thread.sleep
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
-import javax.inject.Inject
 
 
 @AndroidEntryPoint
@@ -41,11 +46,27 @@ class ContributeActivity : ComponentActivity() {
 
     private lateinit var mMapView: MapView
     private val MAPVIEW_BUNDLE_KEY = "MapViewBundleKey"
-    private var googleMap : GoogleMap? = null
+    private var googleMap: GoogleMap? = null
 
-    private fun initializeUI(){
+    fun prepareAndCropImage() {
+        val imgfile = saveBitmapWithFilenameToFile(
+            this,
+            "cropthisimage.jpg",
+            viewModel.currentImage.value!!.asImageBitmap().asAndroidBitmap()
+        )
+        val intent = Intent(this, CropImageActivity::class.java)
+        intent.putExtra("imgUrl", imgfile!!.absolutePath)
+
+        startActivity(intent)
+    }
+
+    private fun initializeUI() {
         viewBinding.startstopbtn.setOnClickListener {
             viewModel.toggleInference()
+        }
+        viewBinding.cropbtn.setOnClickListener {
+            if (viewModel.currentImage.value == null) return@setOnClickListener
+            prepareAndCropImage()
         }
 
         viewModel.isCameraActive.observe(this) {
@@ -64,29 +85,49 @@ class ContributeActivity : ComponentActivity() {
             }
         }
 
-        viewModel.currentImage.observe(this) {
+        viewModel.croppedImage.observe(this) {
             viewBinding.viewFinder.setImageBitmap(it)
         }
 
         viewModel.locationData.observe(this) {
             updateText()
-            if(googleMap!=null){
-                val cameraUpdate = CameraUpdateFactory.newLatLngZoom(LatLng(viewModel.locationData.value!!.latitude, viewModel.locationData.value!!.longitude), 17f)
+            if (googleMap != null) {
+                val cameraUpdate = CameraUpdateFactory.newLatLngZoom(
+                    LatLng(
+                        viewModel.locationData.value!!.latitude,
+                        viewModel.locationData.value!!.longitude
+                    ), 20f
+                )
                 googleMap!!.clear()
                 googleMap!!.addMarker(
                     MarkerOptions()
-                        .position(LatLng(viewModel.locationData.value!!.latitude, viewModel.locationData.value!!.longitude))
+                        .position(
+                            LatLng(
+                                viewModel.locationData.value!!.latitude,
+                                viewModel.locationData.value!!.longitude
+                            )
+                        )
                         .title("Posisi kamu")
                 )
                 googleMap!!.animateCamera(cameraUpdate)
             }
         }
 
-        viewModel.isInferenceStarted.observe(this){
-            if(it){
-                viewBinding.startstopbtn.setImageDrawable(AppCompatResources.getDrawable (this,R.drawable.baseline_stop_24))
-            }else{
-                viewBinding.startstopbtn.setImageDrawable(AppCompatResources.getDrawable (this,R.drawable.baseline_play_arrow_24))
+        viewModel.isInferenceStarted.observe(this) {
+            if (it) {
+                viewBinding.startstopbtn.setImageDrawable(
+                    AppCompatResources.getDrawable(
+                        this,
+                        R.drawable.baseline_stop_24
+                    )
+                )
+            } else {
+                viewBinding.startstopbtn.setImageDrawable(
+                    AppCompatResources.getDrawable(
+                        this,
+                        R.drawable.baseline_play_arrow_24
+                    )
+                )
             }
         }
 
@@ -145,7 +186,7 @@ class ContributeActivity : ComponentActivity() {
 //                        Log.d(TAG, "called")
 //
 //                        sleep(2000)
-                        sleep(500)
+                        sleep(2000)
                     })
                 }
 
@@ -216,5 +257,6 @@ class ContributeActivity : ComponentActivity() {
         mMapView.onDestroy()
         cameraExecutor.shutdown()
     }
+
 
 }

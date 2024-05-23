@@ -1,24 +1,30 @@
 package my.id.jeremia.potholetracker.ui.HomeContribute
 
 import android.graphics.Bitmap
+import android.graphics.Rect
 import android.os.Build
 import android.os.Handler
 import android.os.Looper
+import android.util.Log
 import androidx.core.os.HandlerCompat.postDelayed
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.asFlow
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import my.id.jeremia.potholetracker.data.model.Location
+import my.id.jeremia.potholetracker.data.repository.CropRepository
 import my.id.jeremia.potholetracker.utils.location.ClientLocationRequest
 import javax.inject.Inject
 
 @HiltViewModel
 class ContributeViewModel @Inject constructor(
-    val locationRequest: ClientLocationRequest
+    val locationRequest: ClientLocationRequest,
+    val cropRepository: CropRepository,
 ) : ViewModel() {
 
 
@@ -42,8 +48,20 @@ class ContributeViewModel @Inject constructor(
     val currentImage: LiveData<Bitmap>
         get() = _currentImage
 
+    private val _croppedImage = MutableLiveData<Bitmap>()
+    val croppedImage : LiveData<Bitmap>
+        get()= _croppedImage
+
+    private var cropRect = Rect()
 
     init {
+        viewModelScope.launch{
+            cropRepository.cropRect.asFlow().collect{
+                println("Collected Rect : " + it)
+                cropRect = it
+            }
+        }
+
         locationRequest.startLocationUpdate {
             if(it == null) return@startLocationUpdate
             setGPSActive()
@@ -64,8 +82,6 @@ class ContributeViewModel @Inject constructor(
                     accuracy = it.accuracy,
                 ))
             }
-
-
         }
     }
 
@@ -94,11 +110,44 @@ class ContributeViewModel @Inject constructor(
 
     fun updateCurrentImage(image: Bitmap){
         _currentImage.postValue(image)
+        updateCroppedImage(image)
+    }
+
+    fun updateCroppedImage(image: Bitmap){
+        var width = image.width
+        var height = image.height
+
+        if(cropRect.right != 0){
+            width = cropRect.right - cropRect.left
+        }
+        if(cropRect.bottom != 0){
+            height = cropRect.bottom - cropRect.top
+        }
+
+        var croppedImage : Bitmap;
+
+        try{
+            croppedImage =  Bitmap.createBitmap(
+                image,
+                cropRect.left,
+                cropRect.top,
+                width,
+                height,
+            )
+        }catch (e: Exception){
+            Log.e("Crop", e.message.toString())
+            croppedImage =  image
+        }
+        _croppedImage.postValue(croppedImage)
     }
 
     fun toggleInference() {
         _isInferenceStarted.value = !_isInferenceStarted.value!!
     }
+
+//    fun toggleInference() {
+//        _isInferenceStarted.value = !_isInferenceStarted.value!!
+//    }
 
 
 }

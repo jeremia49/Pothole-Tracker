@@ -25,11 +25,14 @@
         android:usesCleartextTraffic="true"
         tools:targetApi="31">
         <activity
+            android:name=".ui.HomeContribute.CropImageActivity"
+            android:exported="false"
+            android:theme="@style/Theme.AppCompat.DayNight.NoActionBar"
+            />
+        <activity
             android:name=".ui.HomeContribute.ContributeActivity"
             android:exported="false"
-            android:screenOrientation="unspecified"
-            />
-
+            android:screenOrientation="unspecified" />
         <meta-data
             android:name="com.google.android.geo.API_KEY"
             android:value="${MAPS_API_KEY}" />
@@ -38,8 +41,8 @@
             android:name=".ui.MainActivity"
             android:exported="true"
             android:label="@string/app_name"
-            android:theme="@style/Theme.PotholeTracker.Starting"
-            android:screenOrientation="portrait">
+            android:screenOrientation="portrait"
+            android:theme="@style/Theme.PotholeTracker.Starting">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
