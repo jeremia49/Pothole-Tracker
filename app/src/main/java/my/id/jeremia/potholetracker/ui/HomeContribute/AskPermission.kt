@@ -12,6 +12,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import my.id.jeremia.potholetracker.utils.common.askPermission
 import my.id.jeremia.potholetracker.utils.common.checkPermission
 
@@ -21,7 +22,6 @@ fun AskPermissionView(
     viewModel: HomeContributeViewModel
 ) {
 
-
     val launcherMultiplePermissions = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions()
     ) { _ ->
@@ -29,11 +29,12 @@ fun AskPermissionView(
         println("Upgrade")
     }
 
-
-    Text(
-        "Camera Permission : ${viewModel.cameraPermission.value}",
-    )
     if (!viewModel.cameraPermission.value) {
+        Text(
+            text = "Anda belum memperbolehkan akses kamera",
+            fontSize = 15.sp,
+            modifier = Modifier,
+        )
         ElevatedButton(
             onClick = {
                 askPermission(
@@ -41,16 +42,20 @@ fun AskPermissionView(
                     launcherMultiplePermissions
                 )
             },
-            modifier = Modifier.padding(top = 10.dp)
+            modifier = Modifier
+                .padding(bottom=20.dp)
         ) {
             Text("Perbolehkan akses kamera")
         }
     }
 
-    Text(
-        "Location Permission : ${viewModel.locationPermission.value}",
-    )
+
     if (!viewModel.locationPermission.value) {
+        Text(
+            text = "Anda belum memperbolehkan akses lokasi",
+            fontSize = 15.sp,
+            modifier = Modifier
+        )
         ElevatedButton(
             onClick = {
                 askPermission(
@@ -61,7 +66,7 @@ fun AskPermissionView(
                     launcherMultiplePermissions
                 )
             },
-            modifier = Modifier.padding(top = 10.dp)
+            modifier = Modifier
         ) {
             Text("Perbolehkan akses lokasi")
         }

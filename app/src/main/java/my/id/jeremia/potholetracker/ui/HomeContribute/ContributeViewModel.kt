@@ -57,7 +57,6 @@ class ContributeViewModel @Inject constructor(
     init {
         viewModelScope.launch{
             cropRepository.cropRect.asFlow().collect{
-                println("Collected Rect : " + it)
                 cropRect = it
             }
         }

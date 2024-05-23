@@ -96,7 +96,7 @@ class ContributeActivity : ComponentActivity() {
                     LatLng(
                         viewModel.locationData.value!!.latitude,
                         viewModel.locationData.value!!.longitude
-                    ), 20f
+                    ), 17.5f
                 )
                 googleMap!!.clear()
                 googleMap!!.addMarker(
