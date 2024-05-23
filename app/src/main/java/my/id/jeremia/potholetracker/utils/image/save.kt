@@ -14,7 +14,7 @@ fun saveBitmapToFile(context: Context, bitmap: Bitmap): File? {
     // Create a temporary file
     var tempFile: File? = null
     try {
-        tempFile = File.createTempFile("current", ".jpg", tempDir)
+        tempFile = File.createTempFile("temp_", ".jpg", tempDir)
     } catch (e: IOException) {
         e.printStackTrace()
     }

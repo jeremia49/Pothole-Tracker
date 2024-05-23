@@ -64,6 +64,7 @@ class ContributeActivity : ComponentActivity() {
         viewBinding.startstopbtn.setOnClickListener {
             viewModel.toggleInference()
         }
+
         viewBinding.cropbtn.setOnClickListener {
             if (viewModel.currentImage.value == null) return@setOnClickListener
             prepareAndCropImage()
@@ -90,7 +91,7 @@ class ContributeActivity : ComponentActivity() {
         }
 
         viewModel.locationData.observe(this) {
-            updateText()
+//            updateText()
             if (googleMap != null) {
                 val cameraUpdate = CameraUpdateFactory.newLatLngZoom(
                     LatLng(
@@ -160,13 +161,13 @@ class ContributeActivity : ComponentActivity() {
     }
 
     fun updateText() {
-        viewBinding.contentText.setText(
-            "Latitude : ${viewModel.locationData.value?.latitude}\n" +
-                    "Longitude : ${viewModel.locationData.value?.longitude}\n" +
-                    "Speed : ${viewModel.locationData.value?.speed?.times(3.6)} km/h\n" +
-                    "Accuracy : ${viewModel.locationData.value?.accuracy}\n" +
-                    "Speed Accuracy : ${viewModel.locationData.value?.speedAccuracy}\n"
-        )
+//        viewBinding.contentText.setText(
+//            "Latitude : ${viewModel.locationData.value?.latitude}\n" +
+//                    "Longitude : ${viewModel.locationData.value?.longitude}\n" +
+//                    "Speed : ${viewModel.locationData.value?.speed?.times(3.6)} km/h\n" +
+//                    "Accuracy : ${viewModel.locationData.value?.accuracy}\n" +
+//                    "Speed Accuracy : ${viewModel.locationData.value?.speedAccuracy}\n"
+//        )
     }
 
     private fun startCamera() {
@@ -182,11 +183,17 @@ class ContributeActivity : ComponentActivity() {
                     it.setAnalyzer(cameraExecutor, Analyzer { bp ->
                         viewModel.setCameraActive()
                         viewModel.updateCurrentImage(bp)
+
+                        if(viewModel.isInferenceStarted.value!!){
+                            if(viewModel.croppedImage.value == null || viewModel.locationData.value == null) return@Analyzer
+                            viewModel.saveImage(viewModel.croppedImage.value!!)
+                        }
+
 //                        viewModel.addInference(bp)
 //                        Log.d(TAG, "called")
 //
 //                        sleep(2000)
-                        sleep(2000)
+                        sleep(1000)
                     })
                 }
 

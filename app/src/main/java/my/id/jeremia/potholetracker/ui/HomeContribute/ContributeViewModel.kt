@@ -1,5 +1,6 @@
 package my.id.jeremia.potholetracker.ui.HomeContribute
 
+import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.Rect
 import android.os.Build
@@ -13,16 +14,19 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.asFlow
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import my.id.jeremia.potholetracker.data.model.Location
 import my.id.jeremia.potholetracker.data.repository.CropRepository
+import my.id.jeremia.potholetracker.utils.image.saveBitmapToFile
 import my.id.jeremia.potholetracker.utils.location.ClientLocationRequest
 import javax.inject.Inject
 
 @HiltViewModel
 class ContributeViewModel @Inject constructor(
+    @ApplicationContext val ctx : Context,
     val locationRequest: ClientLocationRequest,
     val cropRepository: CropRepository,
 ) : ViewModel() {
@@ -142,6 +146,14 @@ class ContributeViewModel @Inject constructor(
 
     fun toggleInference() {
         _isInferenceStarted.value = !_isInferenceStarted.value!!
+    }
+
+    fun saveImage(bitmap:Bitmap):String{
+        val file = saveBitmapToFile(ctx, bitmap)
+        if (file != null) {
+            return file.absolutePath
+        }
+        return ""
     }
 
 //    fun toggleInference() {
