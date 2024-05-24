@@ -8,4 +8,5 @@
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
     <color name="immersive_sys_ui">#33000000</color>
+    <color name="red">#ffd00036</color>
 </resources>

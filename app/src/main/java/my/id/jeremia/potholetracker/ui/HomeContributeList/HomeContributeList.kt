@@ -1,8 +1,11 @@
 package my.id.jeremia.potholetracker.ui.HomeContributeList
 
+import android.graphics.BitmapFactory
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
@@ -12,16 +15,20 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowCircleUp
 import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.DeleteForever
 import androidx.compose.material3.Divider
+import androidx.compose.material3.FilledIconButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -29,15 +36,18 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import my.id.jeremia.potholetracker.PotholeTrackerApp
 import my.id.jeremia.potholetracker.data.local.db.entity.InferenceData
 import my.id.jeremia.potholetracker.ui.common.list.InfiniteLazyColumn
 import my.id.jeremia.potholetracker.ui.common.preview.HomeContributeListItemProvider
 import my.id.jeremia.potholetracker.ui.theme.PotholeTrackerTheme
+import my.id.jeremia.potholetracker.utils.common.CalendarUtils
 
 @Composable
 fun HomeContributeList(modifier: Modifier = Modifier, viewModel: HomeContributeListViewModel) {
@@ -58,22 +68,63 @@ private fun HomeContributeListView(
     delete: (InferenceData) -> Unit,
     select: (InferenceData) -> Unit,
 ) {
-    InfiniteLazyColumn(
-        loadMore = loadMore,
-        modifier = modifier.fillMaxSize(),
-        content = {
-            items(inferences, key = { it.id }) { inference ->
-                HomeContributeListItem(
-                    inference = inference,
-                    delete = delete,
-                    select = select
-                )
-                HorizontalDivider()
-            }
-        },
-    )
-}
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(0.dp)
+            .systemBarsPadding()
+    ) {
+        InfiniteLazyColumn(
+            loadMore = loadMore,
+            modifier = Modifier
+                .fillMaxSize(),
+            content = {
+                item(
+                    key = "bar"
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(15.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.End
+                    ) {
 
+                        OutlinedButton(onClick = {
+
+                        }) {
+                            Icon(
+                                Icons.Filled.ArrowCircleUp,
+                                "Upload",
+                                modifier = Modifier
+                            )
+                            Text(
+                                "Upload ke server",
+                                fontSize = 15.sp,
+                                modifier = Modifier
+                                    .padding(5.dp),
+                            )
+                        }
+                    }
+                    Text(
+                        "Histori Inferensi",
+                        style = MaterialTheme.typography.headlineLarge,
+                        modifier = Modifier
+                            .padding(start = 8.dp)
+                    )
+                }
+                items(inferences, key = { it.id }) { inference ->
+                    HomeContributeListItem(
+                        inference = inference,
+                        delete = delete,
+                        select = select
+                    )
+                    HorizontalDivider()
+                }
+            },
+        )
+    }
+}
 
 
 @Preview(showBackground = true)
@@ -97,7 +148,6 @@ private fun HomeContributeListPreview(
         )
     }
 }
-
 
 
 @OptIn(ExperimentalFoundationApi::class)
@@ -126,31 +176,44 @@ private fun HomeContributeListItem(
                 .padding(horizontal = 8.dp, vertical = 8.dp)
         ) {
             Text(
-                text = inference.latitude.toString(),
+                text = "Latitude: ${inference.latitude}",
                 style = MaterialTheme.typography.bodyMedium,
                 overflow = TextOverflow.Ellipsis,
             )
             Text(
-                text = inference.longitude.toString(),
+                text = "Longitude: ${inference.longitude}",
                 style = MaterialTheme.typography.bodyMedium,
                 overflow = TextOverflow.Ellipsis,
             )
             Text(
-                text = inference.status.toString(),
+                text = "Status : ${inference.status}",
                 style = MaterialTheme.typography.bodyMedium,
                 overflow = TextOverflow.Ellipsis,
             )
             Text(
-                text = inference.createdAt.toString(),
+                text = "Waktu : ${CalendarUtils.getFormattedDate(inference.createdAt)} ${
+                    CalendarUtils.getFormattedTimeSecond(
+                        inference.createdAt
+                    )
+                }",
+                style = MaterialTheme.typography.bodyMedium,
+                overflow = TextOverflow.Ellipsis,
+            )
+            Text(
+                text = if (inference.synced) "Synced" else "Not Synced",
                 style = MaterialTheme.typography.bodyMedium,
                 overflow = TextOverflow.Ellipsis,
             )
         }
         Box(
-            modifier = Modifier.size(56.dp),
+            modifier = Modifier
+                .size(150.dp),
             contentAlignment = Alignment.Center
         ) {
-
+            Image(
+                BitmapFactory.decodeFile(inference.localImgPath).asImageBitmap(),
+                contentDescription = "Inferenced Image"
+            )
 
 //            Surface(
 //                shape = RoundedCornerShape(6.dp)

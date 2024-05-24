@@ -5,14 +5,18 @@ import android.graphics.Bitmap
 import android.graphics.Rect
 import android.os.Build
 import android.util.Log
+import android.widget.Toast
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.asFlow
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.launch
 import my.id.jeremia.potholetracker.data.local.db.entity.InferenceData
 import my.id.jeremia.potholetracker.data.model.Location
@@ -25,12 +29,15 @@ import javax.inject.Inject
 
 @HiltViewModel
 class ContributeViewModel @Inject constructor(
-    @ApplicationContext val ctx : Context,
+    @ApplicationContext val ctx: Context,
     val locationRequest: ClientLocationRequest,
     val cropRepository: CropRepository,
     val localInferenceRepository: LocalInferenceRepository,
 ) : ViewModel() {
 
+    private val _isInferenceReady = MutableLiveData<Boolean>(false)
+    val isInferenceReady: LiveData<Boolean>
+        get() = _isInferenceReady
 
     private val _isCameraActive = MutableLiveData<Boolean>(false)
     val isCameraActive: LiveData<Boolean>
@@ -53,42 +60,46 @@ class ContributeViewModel @Inject constructor(
         get() = _currentImage
 
     private val _croppedImage = MutableLiveData<Bitmap>()
-    val croppedImage : LiveData<Bitmap>
-        get()= _croppedImage
+    val croppedImage: LiveData<Bitmap>
+        get() = _croppedImage
 
     private var cropRect = Rect()
 
     init {
-        viewModelScope.launch{
-            cropRepository.cropRect.asFlow().collect{
+        viewModelScope.launch {
+            cropRepository.cropRect.asFlow().collect {
                 cropRect = it
             }
         }
 
         locationRequest.startLocationUpdate {
-            if(it == null) return@startLocationUpdate
+            if (it == null) return@startLocationUpdate
             setGPSActive()
 
-            if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.O){
-                _locationData.postValue(Location(
-                    it.latitude,
-                    it.longitude,
-                    speed = it.speed,
-                    accuracy = it.accuracy,
-                    speedAccuracy = it.speedAccuracyMetersPerSecond,
-                ))
-            }else{
-                _locationData.postValue(Location(
-                    it.latitude,
-                    it.longitude,
-                    speed = it.speed,
-                    accuracy = it.accuracy,
-                ))
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                _locationData.postValue(
+                    Location(
+                        it.latitude,
+                        it.longitude,
+                        speed = it.speed,
+                        accuracy = it.accuracy,
+                        speedAccuracy = it.speedAccuracyMetersPerSecond,
+                    )
+                )
+            } else {
+                _locationData.postValue(
+                    Location(
+                        it.latitude,
+                        it.longitude,
+                        speed = it.speed,
+                        accuracy = it.accuracy,
+                    )
+                )
             }
         }
     }
 
-    fun addInference(latitude:Float, longitude:Float, filePath:String, status:String ){
+    fun addInference(latitude: Float, longitude: Float, filePath: String, status: String) {
         viewModelScope.launch {
             val inferenceData = InferenceData(
                 latitude = latitude,
@@ -99,53 +110,58 @@ class ContributeViewModel @Inject constructor(
                 createdAt = Date()
             )
             localInferenceRepository.saveInference(inferenceData)
+                .catch {
+                    toastMessage("Gagal menulis ke database")
+                }
+                .collect { }
         }
     }
 
-    fun setCameraActive(){
-        viewModelScope.launch{
+    fun setCameraActive() {
+        viewModelScope.launch {
             _isCameraActive.postValue(true)
             delay(500)
             _isCameraActive.postValue(false)
         }
     }
-    fun setGPSActive(){
-        viewModelScope.launch{
+
+    fun setGPSActive() {
+        viewModelScope.launch {
             _isGPSActive.postValue(true)
             delay(500)
             _isGPSActive.postValue(false)
         }
     }
 
-    fun updateCurrentImage(image: Bitmap){
+    fun updateCurrentImage(image: Bitmap) {
         _currentImage.postValue(image)
         updateCroppedImage(image)
     }
 
-    fun updateCroppedImage(image: Bitmap){
+    fun updateCroppedImage(image: Bitmap) {
         var width = image.width
         var height = image.height
 
-        if(cropRect.right != 0){
+        if (cropRect.right != 0) {
             width = cropRect.right - cropRect.left
         }
-        if(cropRect.bottom != 0){
+        if (cropRect.bottom != 0) {
             height = cropRect.bottom - cropRect.top
         }
 
-        var croppedImage : Bitmap;
+        var croppedImage: Bitmap;
 
-        try{
-            croppedImage =  Bitmap.createBitmap(
+        try {
+            croppedImage = Bitmap.createBitmap(
                 image,
                 cropRect.left,
                 cropRect.top,
                 width,
                 height,
             )
-        }catch (e: Exception){
+        } catch (e: Exception) {
             Log.e("Crop", e.message.toString())
-            croppedImage =  image
+            croppedImage = image
         }
         _croppedImage.postValue(croppedImage)
     }
@@ -154,12 +170,27 @@ class ContributeViewModel @Inject constructor(
         _isInferenceStarted.value = !_isInferenceStarted.value!!
     }
 
-    fun saveImage(bitmap:Bitmap):String{
+    fun saveImage(bitmap: Bitmap): String {
         val file = saveBitmapToFile(ctx, bitmap)
         if (file != null) {
             return file.absolutePath
         }
         return ""
+    }
+
+    fun toastMessage(msg: String) {
+        viewModelScope.launch(Dispatchers.Main) {
+            Toast.makeText(ctx, msg, Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    fun checkInferenceReady(){
+        if(!isInferenceReady.value!!){
+            if(croppedImage.value == null || locationData.value == null){
+                _isInferenceReady.postValue(true);
+            }
+        }
+
     }
 
 //    fun toggleInference() {

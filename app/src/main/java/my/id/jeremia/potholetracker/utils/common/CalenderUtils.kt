@@ -45,6 +45,14 @@ object CalendarUtils {
             null
         }
 
+    fun getFormattedTimeSecond(date: Date): String? =
+        try {
+            SimpleDateFormat("hh:mm:ss a", Locale.ENGLISH).format(date)
+        } catch (e: Exception) {
+            Log.e(TAG, e.toString())
+            null
+        }
+
     fun getFormattedDateInDayAndMonth(date: Date): String =
         try {
             SimpleDateFormat("dd MMM", Locale.ENGLISH).format(date)

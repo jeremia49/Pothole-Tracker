@@ -20,5 +20,6 @@ val brown40 = Color( 0xffca8b02)
 val brownblue40 = Color(0xff0241ca)
 val pink40 = Color( 0xff8b02ca)
 
-
+val red = Color(0xffd00036)
+val black = Color(0xff000000)
 

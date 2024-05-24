@@ -13,7 +13,9 @@ import androidx.camera.core.ImageAnalysis
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.compose.ui.graphics.asAndroidBitmap
 import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.graphics.toArgb
 import androidx.core.content.ContextCompat
+import androidx.core.graphics.drawable.DrawableCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import com.google.android.gms.maps.CameraUpdateFactory
@@ -25,6 +27,8 @@ import dagger.hilt.android.AndroidEntryPoint
 import my.id.jeremia.potholetracker.R
 import my.id.jeremia.potholetracker.databinding.ActivityContributeBinding
 import my.id.jeremia.potholetracker.ui.HomeContribute.CropImageActivity.CropImageActivity
+import my.id.jeremia.potholetracker.ui.theme.black
+import my.id.jeremia.potholetracker.ui.theme.red
 import my.id.jeremia.potholetracker.utils.camera.Analyzer
 import my.id.jeremia.potholetracker.utils.image.saveBitmapWithFilenameToFile
 import java.lang.Thread.sleep
@@ -56,12 +60,21 @@ class ContributeActivity : ComponentActivity() {
     }
 
     private fun initializeUI() {
+        viewModel.isInferenceReady.observe(this) {
+            if (it) {
+                viewBinding.startstopbtn.visibility = View.VISIBLE
+            } else {
+                viewBinding.startstopbtn.visibility = View.INVISIBLE
+            }
+        }
+
         viewBinding.startstopbtn.setOnClickListener {
             viewModel.toggleInference()
         }
 
         viewBinding.cropbtn.setOnClickListener {
             if (viewModel.currentImage.value == null) return@setOnClickListener
+            if(viewModel.isInferenceStarted.value!!) viewModel.toggleInference()
             prepareAndCropImage()
         }
 
@@ -82,11 +95,12 @@ class ContributeActivity : ComponentActivity() {
         }
 
         viewModel.croppedImage.observe(this) {
+            viewModel.checkInferenceReady()
             viewBinding.viewFinder.setImageBitmap(it)
         }
 
         viewModel.locationData.observe(this) {
-//            updateText()
+            viewModel.checkInferenceReady()
             if (googleMap != null) {
                 val cameraUpdate = CameraUpdateFactory.newLatLngZoom(
                     LatLng(
@@ -117,6 +131,14 @@ class ContributeActivity : ComponentActivity() {
                         R.drawable.baseline_stop_24
                     )
                 )
+                DrawableCompat.setTint(
+                    DrawableCompat.wrap(viewBinding.cameraicon.getDrawable()),
+                    ContextCompat.getColor(this, R.color.red)
+                );
+                DrawableCompat.setTint(
+                    DrawableCompat.wrap(viewBinding.gpsicon.getDrawable()),
+                    ContextCompat.getColor(this, R.color.red)
+                );
             } else {
                 viewBinding.startstopbtn.setImageDrawable(
                     AppCompatResources.getDrawable(
@@ -124,6 +146,14 @@ class ContributeActivity : ComponentActivity() {
                         R.drawable.baseline_play_arrow_24
                     )
                 )
+                DrawableCompat.setTint(
+                    DrawableCompat.wrap(viewBinding.cameraicon.getDrawable()),
+                    ContextCompat.getColor(this, R.color.black)
+                );
+                DrawableCompat.setTint(
+                    DrawableCompat.wrap(viewBinding.gpsicon.getDrawable()),
+                    ContextCompat.getColor(this, R.color.black)
+                );
             }
         }
 
@@ -180,14 +210,22 @@ class ContributeActivity : ComponentActivity() {
                         viewModel.updateCurrentImage(bp)
 
                         if (viewModel.isInferenceStarted.value!!) {
-                            if (viewModel.croppedImage.value == null || viewModel.locationData.value == null) return@Analyzer
-                            val filepath = viewModel.saveImage(viewModel.croppedImage.value!!)
-                            viewModel.addInference(
-                                viewModel.locationData.value!!.latitude.toFloat(),
-                                viewModel.locationData.value!!.longitude.toFloat(),
-                                filepath,
-                                "berlubang",
-                            )
+                            if (viewModel.croppedImage.value == null || viewModel.locationData.value == null) {
+                                viewModel.toastMessage("Pastikan ViewFinder sudah ada dan GPS aktif !")
+                            }else{
+                                val filepath = viewModel.saveImage(viewModel.croppedImage.value!!)
+                                if(filepath != ""){
+                                    viewModel.addInference(
+                                        viewModel.locationData.value!!.latitude.toFloat(),
+                                        viewModel.locationData.value!!.longitude.toFloat(),
+                                        filepath,
+                                        "berlubang",
+                                    )
+                                }else{
+                                    viewModel.toastMessage("Gagal menyimpan gambar")
+                                }
+                            }
+
 
                         }
 
