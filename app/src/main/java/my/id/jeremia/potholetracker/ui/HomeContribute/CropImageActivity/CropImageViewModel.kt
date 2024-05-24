@@ -1,11 +1,10 @@
-package my.id.jeremia.potholetracker.ui.HomeContribute
+package my.id.jeremia.potholetracker.ui.HomeContribute.CropImageActivity
 
 import android.graphics.Rect
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import my.id.jeremia.potholetracker.data.repository.CropRepository
 import javax.inject.Inject
 

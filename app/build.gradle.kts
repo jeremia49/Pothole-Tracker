@@ -83,6 +83,13 @@ dependencies {
     implementation(libs.androidx.activity)
     implementation(libs.androidx.constraintlayout)
 
+    //ROOM DB
+    val room = "2.6.1"
+    implementation("androidx.room:room-runtime:$room")
+    ksp("androidx.room:room-compiler:$room")
+    implementation("androidx.room:room-ktx:$room")
+
+
     // UI Image Cropper
     implementation("com.vanniktech:android-image-cropper:4.5.0")
 
@@ -101,7 +108,6 @@ dependencies {
 
     implementation ("androidx.camera:camera-view:${camerax_version}")
     implementation ("androidx.camera:camera-extensions:${camerax_version}")
-
 
     //Cryptography tool
     implementation("com.google.guava:guava:33.2.0-android")

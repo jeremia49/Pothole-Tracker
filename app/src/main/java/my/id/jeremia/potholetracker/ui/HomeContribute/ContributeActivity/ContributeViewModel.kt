@@ -1,13 +1,10 @@
-package my.id.jeremia.potholetracker.ui.HomeContribute
+package my.id.jeremia.potholetracker.ui.HomeContribute.ContributeActivity
 
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.Rect
 import android.os.Build
-import android.os.Handler
-import android.os.Looper
 import android.util.Log
-import androidx.core.os.HandlerCompat.postDelayed
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -17,11 +14,13 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
+import my.id.jeremia.potholetracker.data.local.db.entity.InferenceData
 import my.id.jeremia.potholetracker.data.model.Location
 import my.id.jeremia.potholetracker.data.repository.CropRepository
+import my.id.jeremia.potholetracker.data.repository.LocalInferenceRepository
 import my.id.jeremia.potholetracker.utils.image.saveBitmapToFile
 import my.id.jeremia.potholetracker.utils.location.ClientLocationRequest
+import java.util.Date
 import javax.inject.Inject
 
 @HiltViewModel
@@ -29,6 +28,7 @@ class ContributeViewModel @Inject constructor(
     @ApplicationContext val ctx : Context,
     val locationRequest: ClientLocationRequest,
     val cropRepository: CropRepository,
+    val localInferenceRepository: LocalInferenceRepository,
 ) : ViewModel() {
 
 
@@ -88,13 +88,19 @@ class ContributeViewModel @Inject constructor(
         }
     }
 
-    fun addInference(image: Bitmap, ){
-//        viewModelScope.launch(Dispatchers.Main){
-//            imageview.setImageBitmap(image)
-//        }
-
+    fun addInference(latitude:Float, longitude:Float, filePath:String, status:String ){
+        viewModelScope.launch {
+            val inferenceData = InferenceData(
+                latitude = latitude,
+                longitude = longitude,
+                localImgPath = filePath,
+                status = status,
+                createdTimestamp = System.currentTimeMillis(),
+                createdAt = Date()
+            )
+            localInferenceRepository.saveInference(inferenceData)
+        }
     }
-
 
     fun setCameraActive(){
         viewModelScope.launch{

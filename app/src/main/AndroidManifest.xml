@@ -25,12 +25,12 @@
         android:usesCleartextTraffic="true"
         tools:targetApi="31">
         <activity
-            android:name=".ui.HomeContribute.CropImageActivity"
+            android:name=".ui.HomeContribute.CropImageActivity.CropImageActivity"
             android:exported="false"
             android:theme="@style/Theme.AppCompat.DayNight.NoActionBar"
             />
         <activity
-            android:name=".ui.HomeContribute.ContributeActivity"
+            android:name=".ui.HomeContribute.ContributeActivity.ContributeActivity"
             android:exported="false"
             android:screenOrientation="unspecified" />
         <meta-data

@@ -10,6 +10,8 @@ import androidx.navigation.compose.composable
 import androidx.navigation.navigation
 import my.id.jeremia.potholetracker.ui.HomeContribute.HomeContribute
 import my.id.jeremia.potholetracker.ui.HomeContribute.HomeContributeViewModel
+import my.id.jeremia.potholetracker.ui.HomeContributeList.HomeContributeList
+import my.id.jeremia.potholetracker.ui.HomeContributeList.HomeContributeListViewModel
 import my.id.jeremia.potholetracker.ui.HomeFind.HomeFind
 import my.id.jeremia.potholetracker.ui.HomeFind.HomeFindViewModel
 import my.id.jeremia.potholetracker.ui.HomeListData.HomeListData
@@ -83,6 +85,11 @@ fun NavGraph(
             composable(Destination.Home.MyAccount.route){
                 val viewModel : HomeMyAccountViewModel = hiltViewModel(key=HomeMyAccountViewModel.TAG)
                 HomeMyAccount(modifier,viewModel)
+            }
+
+            composable(Destination.Home.ContributeList.route){
+                val viewModel : HomeContributeListViewModel = hiltViewModel(key=HomeContributeListViewModel.TAG)
+                HomeContributeList(modifier,viewModel)
             }
 
 

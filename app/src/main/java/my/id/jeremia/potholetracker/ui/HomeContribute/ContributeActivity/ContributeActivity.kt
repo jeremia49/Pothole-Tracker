@@ -1,13 +1,11 @@
-package my.id.jeremia.potholetracker.ui.HomeContribute
+package my.id.jeremia.potholetracker.ui.HomeContribute.ContributeActivity
 
-import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import android.view.View
 import androidx.activity.ComponentActivity
 import androidx.activity.enableEdgeToEdge
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.appcompat.content.res.AppCompatResources
 import androidx.camera.core.CameraSelector
@@ -25,13 +23,10 @@ import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MarkerOptions
 import dagger.hilt.android.AndroidEntryPoint
 import my.id.jeremia.potholetracker.R
-import my.id.jeremia.potholetracker.data.model.Image
 import my.id.jeremia.potholetracker.databinding.ActivityContributeBinding
+import my.id.jeremia.potholetracker.ui.HomeContribute.CropImageActivity.CropImageActivity
 import my.id.jeremia.potholetracker.utils.camera.Analyzer
-import my.id.jeremia.potholetracker.utils.image.saveBitmapToFile
 import my.id.jeremia.potholetracker.utils.image.saveBitmapWithFilenameToFile
-import java.io.File
-import java.io.FileOutputStream
 import java.lang.Thread.sleep
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
@@ -184,9 +179,16 @@ class ContributeActivity : ComponentActivity() {
                         viewModel.setCameraActive()
                         viewModel.updateCurrentImage(bp)
 
-                        if(viewModel.isInferenceStarted.value!!){
-                            if(viewModel.croppedImage.value == null || viewModel.locationData.value == null) return@Analyzer
-                            viewModel.saveImage(viewModel.croppedImage.value!!)
+                        if (viewModel.isInferenceStarted.value!!) {
+                            if (viewModel.croppedImage.value == null || viewModel.locationData.value == null) return@Analyzer
+                            val filepath = viewModel.saveImage(viewModel.croppedImage.value!!)
+                            viewModel.addInference(
+                                viewModel.locationData.value!!.latitude.toFloat(),
+                                viewModel.locationData.value!!.longitude.toFloat(),
+                                filepath,
+                                "berlubang",
+                            )
+
                         }
 
 //                        viewModel.addInference(bp)

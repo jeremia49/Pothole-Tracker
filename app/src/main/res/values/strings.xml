@@ -18,4 +18,5 @@
     <string name="KONTRIBUSI_title">Kontribusi</string>
     <string name="MYACCOUNT_title">My Account</string>
     <string name="notice_contribute">Dengan mengklik tombol mulai, aplikasi akan menggunakan kamera untuk mengidentifikasi kondisi jalan secara periodik. Data GPS juga akan digunakan untuk mengidentifikasi lokasi tepat di mana gambar tersebut diambil.\n\nInformasi yang dikumpulkan akan membantu dalam identifikasi dan perbaikan lubang jalan untuk meningkatkan kualitas jalan dan keselamatan pengguna jalan.</string>
+    <string name="delete_inference_success">Berhasil menghapus inference</string>
 </resources>

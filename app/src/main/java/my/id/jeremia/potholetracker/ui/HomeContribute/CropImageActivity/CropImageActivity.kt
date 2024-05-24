@@ -1,4 +1,4 @@
-package my.id.jeremia.potholetracker.ui.HomeContribute
+package my.id.jeremia.potholetracker.ui.HomeContribute.CropImageActivity
 
 import android.content.Intent
 import android.graphics.Rect
