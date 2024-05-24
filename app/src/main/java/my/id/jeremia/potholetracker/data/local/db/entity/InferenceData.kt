@@ -29,6 +29,9 @@ data class InferenceData(
     @ColumnInfo(name = "localImgPath")
     val localImgPath: String,
 
+    @ColumnInfo(name = "remoteImgPath")
+    val remoteImgPath: String = "",
+
     @ColumnInfo(name = "createdAt")
     val createdAt: Date,
 

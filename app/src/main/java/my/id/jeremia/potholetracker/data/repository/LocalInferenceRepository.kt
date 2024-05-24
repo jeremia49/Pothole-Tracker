@@ -40,7 +40,12 @@ class LocalInferenceRepository @Inject constructor(
 //            emit(userApi.journalStorage(JournalsRequest(journals)))
 //        }.map { it.message }
 
-    suspend fun fetchUnSyncJournals(userId: String): Flow<List<InferenceData>> =
+    suspend fun updateImagePath(url:String,id:Long): Flow<Int> =
+        flow {
+            emit(databaseService.inferenceDataDao().updateImageRemotePath(url, id))
+        }.flowOn(dispatcher.io())
+
+    suspend fun fetchUnsyncedInference(): Flow<List<InferenceData>> =
         flow {
             emit(databaseService.inferenceDataDao().getAllUnSync())
         }.flowOn(dispatcher.io())

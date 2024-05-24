@@ -85,4 +85,19 @@ class HomeContributeListViewModel @Inject constructor(
     fun select(inference: InferenceData) {
         // TODO
     }
+
+
+    fun upload(){
+        viewModelScope.launch{
+                localInferenceRepository.fetchUnsyncedInference()
+                    .collect{
+                        if(it.isNotEmpty()){
+
+                        }
+                    }
+
+        }
+    }
+
+
 }

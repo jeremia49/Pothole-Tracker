@@ -57,6 +57,7 @@ fun HomeContributeList(modifier: Modifier = Modifier, viewModel: HomeContributeL
         loadMore = { viewModel.loadMore() },
         delete = { viewModel.delete(it) },
         select = { viewModel.select(it) },
+        upload = { viewModel.upload() }
     )
 }
 
@@ -67,6 +68,7 @@ private fun HomeContributeListView(
     loadMore: () -> Unit,
     delete: (InferenceData) -> Unit,
     select: (InferenceData) -> Unit,
+    upload: () -> Unit = {},
 ) {
     Box(
         modifier = Modifier
@@ -91,7 +93,7 @@ private fun HomeContributeListView(
                     ) {
 
                         OutlinedButton(onClick = {
-
+                            upload()
                         }) {
                             Icon(
                                 Icons.Filled.ArrowCircleUp,

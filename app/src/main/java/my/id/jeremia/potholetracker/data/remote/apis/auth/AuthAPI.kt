@@ -7,8 +7,10 @@ import my.id.jeremia.potholetracker.data.remote.apis.auth.request.AuthLoginReque
 import my.id.jeremia.potholetracker.data.remote.apis.auth.request.AuthRegisterRequest
 import my.id.jeremia.potholetracker.data.remote.apis.auth.response.AuthLoginSuccessResponse
 import my.id.jeremia.potholetracker.data.remote.apis.auth.response.AuthLogoutSuccessResponse
+import my.id.jeremia.potholetracker.data.remote.apis.auth.response.AuthMeSuccessResponse
 import my.id.jeremia.potholetracker.data.remote.apis.auth.response.AuthRegisterSuccessResponse
 import retrofit2.http.Body
+import retrofit2.http.GET
 import retrofit2.http.Headers
 import retrofit2.http.POST
 
@@ -28,6 +30,10 @@ interface AuthAPI {
     @POST(Endpoint.LOGOUT)
     @Headers(RequestHeaders.Key.AUTH_PROTECTED)
     suspend fun logout():AuthLogoutSuccessResponse
+
+    @GET(Endpoint.ME)
+    @Headers(RequestHeaders.Key.AUTH_PROTECTED)
+    suspend fun me():AuthMeSuccessResponse
 
 
 

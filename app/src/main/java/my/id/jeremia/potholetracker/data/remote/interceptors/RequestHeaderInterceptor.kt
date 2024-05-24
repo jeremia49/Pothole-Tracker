@@ -17,11 +17,7 @@ class RequestHeaderInterceptor @Inject constructor(
         val request = chain.request()
         val builder = request.newBuilder()
         val apiAuthType = request.header(RequestHeaders.Key.API_AUTH_TYPE)
-        println(apiAuthType)
-
         builder.removeHeader(RequestHeaders.Key.API_AUTH_TYPE)
-        println()
-
         if(apiAuthType==RequestHeaders.Type.PROTECTED.value){
             runBlocking {
                 val accessToken = userRepository.getCurrentAccessToken()

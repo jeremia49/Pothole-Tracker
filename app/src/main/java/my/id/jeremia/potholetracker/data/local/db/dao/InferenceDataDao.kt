@@ -29,4 +29,6 @@ interface InferenceDataDao {
     @Query("UPDATE inference_data SET synced = 1 WHERE id IN (:ids)")
     suspend fun setAsSynced(ids: List<Long>): Int
 
+    @Query("UPDATE inference_data SET remoteImgPath = :remoteImgPath WHERE id = :id")
+    suspend fun updateImageRemotePath(remoteImgPath: String, id: Long): Int
 }
