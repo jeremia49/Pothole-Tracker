@@ -16,13 +16,16 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.systemBarsPadding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowCircleUp
 import androidx.compose.material.icons.filled.CalendarMonth
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.DeleteForever
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Divider
 import androidx.compose.material3.FilledIconButton
 import androidx.compose.material3.HorizontalDivider
@@ -42,6 +45,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import my.id.jeremia.potholetracker.PotholeTrackerApp
 import my.id.jeremia.potholetracker.data.local.db.entity.InferenceData
 import my.id.jeremia.potholetracker.ui.common.list.InfiniteLazyColumn
@@ -57,7 +61,9 @@ fun HomeContributeList(modifier: Modifier = Modifier, viewModel: HomeContributeL
         loadMore = { viewModel.loadMore() },
         delete = { viewModel.delete(it) },
         select = { viewModel.select(it) },
-        upload = { viewModel.upload() }
+        toggleUpload = { viewModel.toggleUpload() },
+        isSyncing = viewModel.isSyncingGlobal.collectAsStateWithLifecycle().value,
+        resetTable = { viewModel.resetTable() }
     )
 }
 
@@ -68,7 +74,9 @@ private fun HomeContributeListView(
     loadMore: () -> Unit,
     delete: (InferenceData) -> Unit,
     select: (InferenceData) -> Unit,
-    upload: () -> Unit = {},
+    toggleUpload: () -> Unit = {},
+    resetTable: () -> Unit = {},
+    isSyncing: Boolean = false,
 ) {
     Box(
         modifier = Modifier
@@ -93,19 +101,44 @@ private fun HomeContributeListView(
                     ) {
 
                         OutlinedButton(onClick = {
-                            upload()
+                            resetTable()
                         }) {
-                            Icon(
-                                Icons.Filled.ArrowCircleUp,
-                                "Upload",
-                                modifier = Modifier
-                            )
                             Text(
-                                "Upload ke server",
+                                "Reset Tabel",
                                 fontSize = 15.sp,
                                 modifier = Modifier
                                     .padding(5.dp),
                             )
+                        }
+
+                        OutlinedButton(onClick = {
+                            toggleUpload()
+                        }) {
+                            if (isSyncing) {
+                                Icon(
+                                    Icons.Filled.Close,
+                                    "Cancel",
+                                    modifier = Modifier
+                                )
+                                Text(
+                                    "Batalkan",
+                                    fontSize = 15.sp,
+                                    modifier = Modifier
+                                        .padding(5.dp),
+                                )
+                            } else {
+                                Icon(
+                                    Icons.Filled.ArrowCircleUp,
+                                    "Upload",
+                                    modifier = Modifier
+                                )
+                                Text(
+                                    "Upload ke server",
+                                    fontSize = 15.sp,
+                                    modifier = Modifier
+                                        .padding(5.dp),
+                                )
+                            }
                         }
                     }
                     Text(
@@ -201,8 +234,25 @@ private fun HomeContributeListItem(
                 style = MaterialTheme.typography.bodyMedium,
                 overflow = TextOverflow.Ellipsis,
             )
+            if(inference.isSyncing){
+                CircularProgressIndicator(
+                    modifier = Modifier.width(64.dp),
+                    color = MaterialTheme.colorScheme.secondary,
+                    trackColor = MaterialTheme.colorScheme.surfaceVariant,
+                )
+            }
+            Text(
+                text = "isSyncing : ${inference.isSyncing}",
+                style = MaterialTheme.typography.bodyMedium,
+                overflow = TextOverflow.Ellipsis,
+            )
             Text(
                 text = if (inference.synced) "Synced" else "Not Synced",
+                style = MaterialTheme.typography.bodyMedium,
+                overflow = TextOverflow.Ellipsis,
+            )
+            Text(
+                text = "remoteUrl : ${inference.remoteImgPath}",
                 style = MaterialTheme.typography.bodyMedium,
                 overflow = TextOverflow.Ellipsis,
             )

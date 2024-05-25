@@ -39,6 +39,9 @@ data class InferenceData(
     val createdTimestamp: Long,
 
     @ColumnInfo(name = "synced")
-    val synced: Boolean = false
+    val synced: Boolean = false,
+
+    @ColumnInfo(name="isSyncing")
+    val isSyncing:Boolean = false,
 
     ) : Parcelable

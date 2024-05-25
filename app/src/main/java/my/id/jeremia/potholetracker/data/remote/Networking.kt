@@ -60,7 +60,7 @@ object Networking {
             .build()
     }
 
-    fun createOkHttpClientForImage(
+    fun createOkHttpClientForImageDownload(
         cacheDir: File,
         cacheSize: Long,
     ): OkHttpClient{

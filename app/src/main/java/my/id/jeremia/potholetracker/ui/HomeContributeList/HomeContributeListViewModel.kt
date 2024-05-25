@@ -1,12 +1,23 @@
 package my.id.jeremia.potholetracker.ui.HomeContributeList
 
+import android.util.Log
+import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.takeWhile
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withContext
 import my.id.jeremia.potholetracker.R
 import my.id.jeremia.potholetracker.data.local.db.entity.InferenceData
 import my.id.jeremia.potholetracker.data.repository.LocalInferenceRepository
@@ -37,9 +48,12 @@ class HomeContributeListViewModel @Inject constructor(
     private var currentPageNumber = 1
 
     private val _inferences = mutableStateListOf<InferenceData>()
-    val inferences : List<InferenceData> = _inferences
+    val inferences: List<InferenceData> = _inferences
 
-    init{
+    private val _isSyncingGlobal = MutableStateFlow(false)
+    val isSyncingGlobal = _isSyncingGlobal.asStateFlow()
+
+    init {
         loadInferences(currentPageNumber)
     }
 
@@ -86,17 +100,172 @@ class HomeContributeListViewModel @Inject constructor(
         // TODO
     }
 
+    suspend fun setSyncing(inference: InferenceData, status: Boolean): InferenceData {
+        //Edit Inference Object
+        val editedInference = inference.copy(
+            isSyncing = status
+        )
 
-    fun upload(){
-        viewModelScope.launch{
-                localInferenceRepository.fetchUnsyncedInference()
-                    .collect{
-                        if(it.isNotEmpty()){
+        //Edit Database
+        localInferenceRepository.updateInference(
+            editedInference
+        ).first()
 
+        //Edit UI
+        var idx = -1;
+        for (i in 0 until _inferences.size) {
+            if (_inferences[i].id == inference.id) {
+                idx = i
+            }
+        }
+        if (idx != -1) {
+            _inferences[idx] = inference.copy(
+                isSyncing = status
+            )
+        }
+        return editedInference
+    }
+
+    suspend fun uploadImage(inference: InferenceData, success: (url: String) -> Unit) {
+        try {
+            localInferenceRepository.uploadImage(inference.localImgPath)
+                .first {
+                    val remoteUrl = it.data
+                    if (remoteUrl != null) success(remoteUrl)
+                    true
+                }
+        }catch (_:Exception){}
+    }
+
+    suspend fun uploadData(inference: InferenceData, success: () -> Unit) {
+        try{
+            localInferenceRepository.sendInference(inference)
+                .first {
+                    val data = it
+                    if (data.status == "ok" && data.message == "Berhasil") success()
+                    true
+                }
+        }catch(_:Exception){}
+    }
+
+
+    suspend fun uploadImageAndUpdateDatabase(inference: InferenceData): InferenceData {
+        var editedInference = inference.copy()
+        if (inference.remoteImgPath == "") {
+            uploadImage(inference) { url ->
+                //Edit Inference Object
+                editedInference = editedInference.copy(
+                    remoteImgPath = url
+                )
+
+                //Edit Database
+                viewModelScope.launch{
+                    localInferenceRepository.updateInference(
+                        editedInference
+                    ).first()
+                }
+
+
+                //Edit UI
+                var idx = -1;
+                for (i in 0 until _inferences.size) {
+                    if (_inferences[i].id == inference.id) {
+                        idx = i
+                    }
+                }
+                if (idx != -1) {
+                    _inferences[idx] = editedInference
+                }
+            }
+        }
+        return editedInference
+    }
+
+    suspend fun uploadDataAndUpdateDatabase(inference: InferenceData): InferenceData {
+        var editedInference = inference.copy()
+        if (inference.remoteImgPath != "") {
+            uploadData(inference) {
+                //Edit Inference Object
+                editedInference = editedInference.copy(
+                    isSyncing = false,
+                    synced = true,
+                )
+
+                //Edit Database
+                viewModelScope.launch {
+                    localInferenceRepository.updateInference(
+                        editedInference
+                    ).first()
+                }
+
+                //Edit UI
+                var idx = -1;
+                for (i in 0 until _inferences.size) {
+                    if (_inferences[i].id == inference.id) {
+                        idx = i
+                    }
+                }
+                if (idx != -1) {
+                    _inferences[idx] = editedInference
+                }
+            }
+        }
+        return editedInference
+    }
+
+    fun toggleUpload() {
+        _isSyncingGlobal.value = !isSyncingGlobal.value
+        if (_isSyncingGlobal.value) upload()
+    }
+
+
+    fun upload() {
+        viewModelScope.launch {
+            localInferenceRepository.fetchUnsyncedInference()
+                .collect {
+
+                    viewModelScope.launch {
+                        val dcount = it.size
+                        var done = 0
+                        for (currentInferenceData in it) {
+                            if(!_isSyncingGlobal.value){
+                                continue
+                            }
+                            var updateInference = currentInferenceData.copy()
+                            Log.e(TAG, "Current Inference : ${updateInference}")
+
+                            updateInference = setSyncing(updateInference, true)
+                            Log.d(TAG, "Syncing : ${updateInference}")
+
+                            updateInference = uploadImageAndUpdateDatabase(updateInference)
+                            Log.d(TAG, "image database : ${updateInference}")
+
+                            Log.d(TAG, "upload data : ${updateInference}")
+                            updateInference = uploadDataAndUpdateDatabase(updateInference)
+                            Log.d(TAG, "upload data : ${updateInference}")
+
+                            updateInference = setSyncing(updateInference, false)
+                            Log.d(TAG, "syncing off :  ${updateInference}")
+                            done += 1
+                        }
+                        if(dcount == done ){
+                            messenger.deliver(Message.success("Upload Success"))
+                            toggleUpload()
                         }
                     }
+                }
+
 
         }
+    }
+
+
+    fun resetTable() {
+        runBlocking {
+            localInferenceRepository.resetTable()
+                .first()
+        }
+
     }
 
 

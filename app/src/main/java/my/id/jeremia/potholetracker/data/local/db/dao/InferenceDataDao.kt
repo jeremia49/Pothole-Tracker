@@ -4,6 +4,7 @@ import androidx.room.Dao
 import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.Query
+import androidx.room.Update
 import my.id.jeremia.potholetracker.data.local.db.entity.InferenceData
 
 @Dao
@@ -31,4 +32,11 @@ interface InferenceDataDao {
 
     @Query("UPDATE inference_data SET remoteImgPath = :remoteImgPath WHERE id = :id")
     suspend fun updateImageRemotePath(remoteImgPath: String, id: Long): Int
+
+    @Update
+    suspend fun updateInferenceData(inferenceData: InferenceData) : Int
+
+    @Query("DELETE FROM inference_data")
+    suspend fun resetTable():Int
+
 }

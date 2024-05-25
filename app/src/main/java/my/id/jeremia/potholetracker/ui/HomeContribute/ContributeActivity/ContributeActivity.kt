@@ -233,7 +233,7 @@ class ContributeActivity : ComponentActivity() {
 //                        Log.d(TAG, "called")
 //
 //                        sleep(2000)
-                        sleep(1000)
+                        sleep(500)
                     })
                 }
 

@@ -1,7 +1,6 @@
 package my.id.jeremia.potholetracker.di.module
 
 import android.content.Context
-import android.media.Image
 import coil.ImageLoader
 import coil.disk.DiskCache
 import coil.memory.MemoryCache
@@ -34,7 +33,7 @@ object NetworkImageModule {
                 .build()
         }
         .okHttpClient(
-            Networking.createOkHttpClientForImage(
+            Networking.createOkHttpClientForImageDownload(
                 ctx.cacheDir,
                 50 * 1024 * 1024,
             )

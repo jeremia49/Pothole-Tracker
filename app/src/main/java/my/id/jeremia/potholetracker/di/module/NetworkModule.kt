@@ -9,6 +9,8 @@ import dagger.hilt.components.SingletonComponent
 import my.id.jeremia.potholetracker.BuildConfig
 import my.id.jeremia.potholetracker.data.remote.Networking
 import my.id.jeremia.potholetracker.data.remote.apis.auth.AuthAPI
+import my.id.jeremia.potholetracker.data.remote.apis.image.ImageUploadAPI
+import my.id.jeremia.potholetracker.data.remote.apis.inference.InferenceAPI
 import my.id.jeremia.potholetracker.data.remote.interceptors.RequestHeaderInterceptor
 import my.id.jeremia.potholetracker.di.qualifier.BaseUrl
 import my.id.jeremia.potholetracker.di.qualifier.QuickAuthCheck
@@ -35,7 +37,6 @@ object NetworkModule {
     @Singleton
     @QuickTimeoutokHttpClient
     fun provideApiOkHttpClientWithQuickTimeout(
-        @ApplicationContext context: Context,
         requestHeaderInterceptor: RequestHeaderInterceptor,
     ): OkHttpClient = Networking.createOkHttpClientWithTimeout(
         requestHeaderInterceptor,
@@ -70,6 +71,26 @@ object NetworkModule {
         AuthAPI::class.java
     )
 
+    @Provides
+    @Singleton
+    fun provideImageAPI(
+        @BaseUrl baseUrl: String,
+        okHttpClient: OkHttpClient
+    ): ImageUploadAPI = Networking.createService(
+        baseUrl,
+        okHttpClient,
+        ImageUploadAPI::class.java
+    )
 
+    @Provides
+    @Singleton
+    fun provideInferenceAPI(
+        @BaseUrl baseUrl: String,
+        okHttpClient: OkHttpClient
+    ): InferenceAPI = Networking.createService(
+        baseUrl,
+        okHttpClient,
+        InferenceAPI::class.java
+    )
 
 }
