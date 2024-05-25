@@ -53,9 +53,12 @@ class SplashViewModel @Inject constructor(
                                 userRepository.removeCurrentUser();
                             }
                             navigator.navigateTo(Destination.Login.route, true)
+                        }else{
+                            navigator.navigateTo(Destination.Home.Find.route, true)
                         }
                     } catch (e: Exception) {
                         Log.e(TAG, e.message.toString())
+                        navigator.navigateTo(Destination.Home.Find.route, true)
                     }
                 },
                     finish = {
