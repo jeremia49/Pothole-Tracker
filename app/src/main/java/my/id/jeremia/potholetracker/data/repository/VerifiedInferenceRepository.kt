@@ -42,6 +42,13 @@ class VerifiedInferenceRepository @Inject constructor(
             emit(inferenceAPI.getAllInferences())
         }
 
+    suspend fun fetchAll(): Flow<List<VerifiedInference>> =
+        flow {
+            emit(
+                databaseService.verifiedInferenceDao()
+                    .getAll()
+            )
+        }.flowOn(dispatcher.io())
     suspend fun fetchPaginatedInferences(
         pageNumber: Int,
         pageItemCount: Int

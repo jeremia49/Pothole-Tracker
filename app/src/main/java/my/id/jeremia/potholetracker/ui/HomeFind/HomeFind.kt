@@ -60,6 +60,7 @@ import com.google.maps.android.compose.Marker
 import com.google.maps.android.compose.MarkerState
 import com.google.maps.android.compose.rememberCameraPositionState
 import my.id.jeremia.potholetracker.R
+import my.id.jeremia.potholetracker.data.local.db.entity.VerifiedInference
 import my.id.jeremia.potholetracker.ui.HomeMyAccount.HomeMyAccountViewModel
 import my.id.jeremia.potholetracker.ui.theme.grey
 import my.id.jeremia.potholetracker.ui.theme.manropeFontFamily
@@ -70,6 +71,7 @@ fun HomeFind(modifier: Modifier = Modifier, viewModel: HomeFindViewModel) {
     BackHandler { viewModel.navigator.finish() }
     HomeFindView(
         modifier,
+        inferences = viewModel.inferences,
     )
 }
 
@@ -77,6 +79,7 @@ fun HomeFind(modifier: Modifier = Modifier, viewModel: HomeFindViewModel) {
 @Composable
 fun HomeFindView(
     modifier: Modifier = Modifier,
+    inferences: List<VerifiedInference> = emptyList(),
 ) {
 
     Box(
@@ -85,20 +88,21 @@ fun HomeFindView(
             .padding(0.dp)
     ) {
 
-        val singapore = LatLng(1.35, 103.87)
+        val siantar = LatLng(2.964283004846631,  99.0595995064405)
         val cameraPositionState = rememberCameraPositionState {
-            position = CameraPosition.fromLatLngZoom(singapore, 10f)
+            position = CameraPosition.fromLatLngZoom(siantar, 10f)
         }
 
         GoogleMap(
             modifier = Modifier.fillMaxSize(),
             cameraPositionState = cameraPositionState
         ) {
-            Marker(
-                state = MarkerState(position = singapore),
-                title = "Singapore",
-                snippet = "Marker in Singapore"
-            )
+            repeat(inferences.size){
+                val marker = LatLng(inferences[it].latitude.toDouble(),  inferences[it].longitude.toDouble())
+                Marker(
+                    state = MarkerState(position = marker),
+                )
+            }
         }
 
 
