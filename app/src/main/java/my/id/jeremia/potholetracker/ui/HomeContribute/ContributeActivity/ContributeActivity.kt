@@ -31,6 +31,8 @@ import my.id.jeremia.potholetracker.ui.theme.black
 import my.id.jeremia.potholetracker.ui.theme.red
 import my.id.jeremia.potholetracker.utils.camera.Analyzer
 import my.id.jeremia.potholetracker.utils.image.saveBitmapWithFilenameToFile
+import org.tensorflow.lite.DataType
+import org.tensorflow.lite.support.image.TensorImage
 import java.lang.Thread.sleep
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
@@ -214,12 +216,28 @@ class ContributeActivity : ComponentActivity() {
                                 viewModel.toastMessage("Pastikan ViewFinder sudah ada dan GPS aktif !")
                             }else{
                                 val filepath = viewModel.saveImage(viewModel.croppedImage.value!!)
+
+                                val timage = TensorImage(DataType.FLOAT32)
+                                timage.load(viewModel.croppedImage.value!!)
+                                val processedImage = viewModel.tensorflowRepository.processImage(timage)
+
+                                val output = viewModel.tensorflowRepository.startInference(processedImage)
+                                var status=""
+                                if(output[0]>=0.5){
+                                    status = "normal"
+                                }else{
+                                    status = "berlubang"
+                                }
+                                runOnUiThread {
+                                    viewBinding.contentText.setText(status)
+                                }
+
                                 if(filepath != ""){
                                     viewModel.addInference(
                                         viewModel.locationData.value!!.latitude.toFloat(),
                                         viewModel.locationData.value!!.longitude.toFloat(),
                                         filepath,
-                                        "berlubang",
+                                        status,
                                     )
                                 }else{
                                     viewModel.toastMessage("Gagal menyimpan gambar")

@@ -22,6 +22,7 @@ import my.id.jeremia.potholetracker.data.local.db.entity.InferenceData
 import my.id.jeremia.potholetracker.data.model.Location
 import my.id.jeremia.potholetracker.data.repository.CropRepository
 import my.id.jeremia.potholetracker.data.repository.LocalInferenceRepository
+import my.id.jeremia.potholetracker.data.repository.TensorflowRepository
 import my.id.jeremia.potholetracker.utils.image.saveBitmapToFile
 import my.id.jeremia.potholetracker.utils.location.ClientLocationRequest
 import java.util.Date
@@ -33,6 +34,7 @@ class ContributeViewModel @Inject constructor(
     val locationRequest: ClientLocationRequest,
     val cropRepository: CropRepository,
     val localInferenceRepository: LocalInferenceRepository,
+    val tensorflowRepository: TensorflowRepository,
 ) : ViewModel() {
 
     private val _isInferenceReady = MutableLiveData<Boolean>(false)
@@ -64,6 +66,7 @@ class ContributeViewModel @Inject constructor(
         get() = _croppedImage
 
     private var cropRect = Rect()
+
 
     init {
         viewModelScope.launch {

@@ -83,6 +83,11 @@ dependencies {
     implementation(libs.androidx.activity)
     implementation(libs.androidx.constraintlayout)
 
+
+    //Tensorflow
+    implementation ("org.tensorflow:tensorflow-lite:2.10.0")
+    implementation ("org.tensorflow:tensorflow-lite-support:0.4.4")
+
     //ROOM DB
     val room = "2.6.1"
     implementation("androidx.room:room-runtime:$room")
