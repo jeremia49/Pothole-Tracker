@@ -97,12 +97,12 @@ fun HomeFindView(
             modifier = Modifier.fillMaxSize(),
             cameraPositionState = cameraPositionState
         ) {
-            repeat(inferences.size){
-                val marker = LatLng(inferences[it].latitude.toDouble(),  inferences[it].longitude.toDouble())
-                Marker(
-                    state = MarkerState(position = marker),
-                )
-            }
+//            repeat(inferences.size){
+//                val marker = LatLng(inferences[it].latitude.toDouble(),  inferences[it].longitude.toDouble())
+//                Marker(
+//                    state = MarkerState(position = marker),
+//                )
+//            }
         }
 
 

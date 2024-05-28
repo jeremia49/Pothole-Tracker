@@ -39,8 +39,8 @@ class VerifiedInferenceRepository @Inject constructor(
         databaseService.verifiedInferenceDao().insert(verifiedInference)
     suspend fun syncFromServer(): Flow<GetInferenceSuccessResponse> =
         flow {
-            emit(inferenceAPI.getAllInferences())
-        }
+            emit(inferenceAPI.getAllPotholes())
+        }.flowOn(dispatcher.io())
 
     suspend fun fetchAll(): Flow<List<VerifiedInference>> =
         flow {

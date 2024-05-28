@@ -13,6 +13,9 @@ interface InferenceAPI {
 
     @GET(Endpoint.ALL_INFERENCE)
     suspend fun getAllInferences(): GetInferenceSuccessResponse
+    @GET(Endpoint.ALL_POTHOLES)
+    suspend fun getAllPotholes(): GetInferenceSuccessResponse
+
 
 
     @POST(Endpoint.ADD_INFERENCE)
