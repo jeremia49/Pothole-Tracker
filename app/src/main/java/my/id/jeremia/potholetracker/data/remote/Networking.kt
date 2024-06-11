@@ -2,6 +2,7 @@ package my.id.jeremia.potholetracker.data.remote
 
 import com.squareup.moshi.Moshi
 import my.id.jeremia.potholetracker.BuildConfig
+import my.id.jeremia.potholetracker.data.remote.interceptors.GoogleMapsHeaderInterceptor
 import my.id.jeremia.potholetracker.data.remote.interceptors.RequestHeaderInterceptor
 import okhttp3.Cache
 import okhttp3.OkHttpClient
@@ -43,10 +44,26 @@ object Networking {
             .addInterceptor(requestHeaderInterceptor)
             .addInterceptor(getHttpLoggingInterceptor())
             .cache(Cache(cacheDir,cacheSize))
+            .callTimeout(NETWORK_CALL_TIMEOUT.toLong(), TimeUnit.SECONDS)
+            .connectTimeout(NETWORK_CALL_TIMEOUT.toLong(), TimeUnit.SECONDS)
             .readTimeout(NETWORK_CALL_TIMEOUT.toLong(), TimeUnit.SECONDS)
             .writeTimeout(NETWORK_CALL_TIMEOUT.toLong(), TimeUnit.SECONDS)
             .build()
     }
+
+    fun createGoogleMapsHTTPClient(
+        googleMapsHeaderInterceptor: GoogleMapsHeaderInterceptor
+    ): OkHttpClient{
+        return OkHttpClient.Builder()
+            .addInterceptor(googleMapsHeaderInterceptor)
+            .addInterceptor(getHttpLoggingInterceptor())
+            .callTimeout(NETWORK_CALL_TIMEOUT.toLong(), TimeUnit.SECONDS)
+            .connectTimeout(NETWORK_CALL_TIMEOUT.toLong(), TimeUnit.SECONDS)
+            .readTimeout(NETWORK_CALL_TIMEOUT.toLong(), TimeUnit.SECONDS)
+            .writeTimeout(NETWORK_CALL_TIMEOUT.toLong(), TimeUnit.SECONDS)
+            .build()
+    }
+
 
     fun createOkHttpClientWithTimeout(
         requestHeaderInterceptor: RequestHeaderInterceptor,
@@ -71,11 +88,5 @@ object Networking {
             .writeTimeout(NETWORK_CALL_TIMEOUT.toLong(), TimeUnit.SECONDS)
             .build()
     }
-
-
-
-
-
-
 
 }

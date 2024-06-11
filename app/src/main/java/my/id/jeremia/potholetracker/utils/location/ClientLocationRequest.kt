@@ -19,15 +19,17 @@ class ClientLocationRequest @Inject constructor(
 ) {
     private val _fusedLocationClient = LocationServices.getFusedLocationProviderClient(ctx)
 
+    lateinit var locationCallback : LocationCallback;
+
     @SuppressLint("MissingPermission")
-    fun startLocationUpdate(listener : (Location?)->Unit ) {
+    fun startLocationUpdate(intervalMilis:Long=1000,minIntervalMilis:Long=1000, listener : (Location?)->Unit , ) {
 
         val locationRequest = LocationRequest
-            .Builder(Priority.PRIORITY_HIGH_ACCURACY, 1000)
-            .setMinUpdateIntervalMillis(900)
+            .Builder(Priority.PRIORITY_HIGH_ACCURACY, intervalMilis)
+            .setMinUpdateIntervalMillis(minIntervalMilis)
             .build()
 
-        val locationCallback = object : LocationCallback() {
+        locationCallback = object : LocationCallback() {
             override fun onLocationResult(locationResult: LocationResult) {
                 super.onLocationResult(locationResult)
                 listener(locationResult.lastLocation)
@@ -36,6 +38,10 @@ class ClientLocationRequest @Inject constructor(
 
         _fusedLocationClient.requestLocationUpdates(locationRequest,locationCallback, Looper.getMainLooper())
 
+    }
+
+    fun stopLocationUpdate(){
+        _fusedLocationClient.removeLocationUpdates(locationCallback)
     }
 
 }

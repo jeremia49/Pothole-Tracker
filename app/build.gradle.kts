@@ -26,8 +26,8 @@ android {
 
     buildTypes {
         debug{
-            buildConfigField("String","BASE_URL", "\"http://10.0.2.2:8000/\"")
-//            buildConfigField("String","BASE_URL", "\"http://192.168.1.114:8000/\"")
+//            buildConfigField("String","BASE_URL", "\"http://10.0.2.2:8000/\"")
+            buildConfigField("String","BASE_URL", "\"http://192.168.1.114/\"")
         }
         release {
             buildConfigField("String","BASE_URL","\"https://potholetracker.jeremia.my.id\"")
@@ -83,6 +83,13 @@ dependencies {
     implementation(libs.androidx.activity)
     implementation(libs.androidx.constraintlayout)
 
+    //JTS
+    implementation("org.locationtech.jts:jts-core:1.19.0")
+
+    implementation(platform("org.jetbrains.kotlin:kotlin-bom:1.9.20"))
+
+    //Places New SDK
+    implementation ("com.google.android.libraries.places:places:3.5.0")
 
     //Tensorflow
     implementation ("org.tensorflow:tensorflow-lite:2.10.0")
@@ -125,6 +132,7 @@ dependencies {
     //Google Maps SDK
     implementation("com.google.maps.android:maps-ktx:5.0.0")
     implementation("com.google.maps.android:maps-compose:5.0.1")
+    implementation("com.google.maps.android:maps-compose-utils:5.0.1")
     implementation ("com.google.android.gms:play-services-maps:18.2.0")
 
     //DataStore

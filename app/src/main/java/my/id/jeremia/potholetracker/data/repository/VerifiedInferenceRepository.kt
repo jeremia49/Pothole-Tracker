@@ -12,6 +12,7 @@ import my.id.jeremia.potholetracker.data.remote.apis.auth.request.AuthLoginReque
 import my.id.jeremia.potholetracker.data.remote.apis.auth.response.AuthLoginSuccessResponse
 import my.id.jeremia.potholetracker.data.remote.apis.inference.InferenceAPI
 import my.id.jeremia.potholetracker.data.remote.apis.inference.response.GetInferenceSuccessResponse
+import my.id.jeremia.potholetracker.data.remote.apis.inference.response.GetPagedInferences
 import my.id.jeremia.potholetracker.utils.coroutine.Dispatcher
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -37,9 +38,11 @@ class VerifiedInferenceRepository @Inject constructor(
 
     suspend fun insertVerifiedInference(verifiedInference: VerifiedInference) =
         databaseService.verifiedInferenceDao().insert(verifiedInference)
-    suspend fun syncFromServer(): Flow<GetInferenceSuccessResponse> =
+    suspend fun syncFromServer(page:Int = 1): Flow<GetPagedInferences> =
         flow {
-            emit(inferenceAPI.getAllPotholes())
+
+            emit(inferenceAPI.getPaginatedInferences(page))
+
         }.flowOn(dispatcher.io())
 
     suspend fun fetchAll(): Flow<List<VerifiedInference>> =
@@ -49,6 +52,7 @@ class VerifiedInferenceRepository @Inject constructor(
                     .getAll()
             )
         }.flowOn(dispatcher.io())
+
     suspend fun fetchPaginatedInferences(
         pageNumber: Int,
         pageItemCount: Int

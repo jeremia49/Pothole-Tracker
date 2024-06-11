@@ -26,7 +26,6 @@ fun AskPermissionView(
         ActivityResultContracts.RequestMultiplePermissions()
     ) { _ ->
         viewModel.updatePermissionState();
-        println("Upgrade")
     }
 
     if (!viewModel.cameraPermission.value) {

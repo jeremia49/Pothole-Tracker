@@ -11,8 +11,12 @@ import my.id.jeremia.potholetracker.data.remote.Networking
 import my.id.jeremia.potholetracker.data.remote.apis.auth.AuthAPI
 import my.id.jeremia.potholetracker.data.remote.apis.image.ImageUploadAPI
 import my.id.jeremia.potholetracker.data.remote.apis.inference.InferenceAPI
+import my.id.jeremia.potholetracker.data.remote.apis.maps.route.RouteAPI
+import my.id.jeremia.potholetracker.data.remote.interceptors.GoogleMapsHeaderInterceptor
 import my.id.jeremia.potholetracker.data.remote.interceptors.RequestHeaderInterceptor
 import my.id.jeremia.potholetracker.di.qualifier.BaseUrl
+import my.id.jeremia.potholetracker.di.qualifier.GoogleMapsHTTPClient
+import my.id.jeremia.potholetracker.di.qualifier.GoogleMapsPlatformApiKey
 import my.id.jeremia.potholetracker.di.qualifier.QuickAuthCheck
 import my.id.jeremia.potholetracker.di.qualifier.QuickTimeoutokHttpClient
 import okhttp3.OkHttpClient
@@ -91,6 +95,32 @@ object NetworkModule {
         baseUrl,
         okHttpClient,
         InferenceAPI::class.java
+    )
+
+
+
+    @Provides
+    @Singleton
+    @GoogleMapsPlatformApiKey
+    fun provideGoogleMapsAPIKey() : String = BuildConfig.MAPS_API_KEY
+
+    @Provides
+    @Singleton
+    @GoogleMapsHTTPClient
+    fun provideGoogleMapsHTTPClient (
+        googleMapsHeaderInterceptor: GoogleMapsHeaderInterceptor
+    ): OkHttpClient = Networking.createGoogleMapsHTTPClient(
+        googleMapsHeaderInterceptor
+    )
+
+    @Provides
+    @Singleton
+    fun provideGoogleMapsAPI(
+        @GoogleMapsHTTPClient okHttpClient: OkHttpClient
+    ): RouteAPI = Networking.createService(
+        "https://routes.googleapis.com/",
+        okHttpClient,
+        RouteAPI::class.java
     )
 
 }

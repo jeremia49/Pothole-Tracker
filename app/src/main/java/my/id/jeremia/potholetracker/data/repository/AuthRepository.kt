@@ -16,10 +16,10 @@ class AuthRepository @Inject constructor(
     private val authAPI: AuthAPI,
 ) {
 
-    suspend fun doLogin(email:String, password:String):Flow<AuthLoginSuccessResponse> =
-        flow {
-            emit(authAPI.login(AuthLoginRequest(email,password)))
-        }
+        suspend fun doLogin(email:String, password:String):Flow<AuthLoginSuccessResponse> =
+            flow {
+                emit(authAPI.login(AuthLoginRequest(email,password)))
+            }
 
     suspend fun doRegister(email:String, name:String, password:String, ):Flow<AuthRegisterSuccessResponse> =
         flow {

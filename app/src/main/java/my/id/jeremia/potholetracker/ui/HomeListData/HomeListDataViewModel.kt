@@ -81,17 +81,14 @@ class HomeListDataViewModel @Inject constructor(
 
     fun fetchFromNetwork() {
         launchNetwork {
-            val data = verifiedInferenceRepository
+            val arrayList : MutableList<VerifiedInference> = emptyList<VerifiedInference>().toMutableList();
+
+            var data = verifiedInferenceRepository
                 .syncFromServer()
                 .first()
 
-            if (data.data != null) {
-                verifiedInferenceRepository
-                    .resetTable()
-                    .first()
-
-                _inferences.clear()
-                for (item in data.data) {
+            while(data.data!!.currentPage!! <= data.data!!.lastPage!!){
+                for (item in data.data!!.data!!) {
                     val verifiedInferenceItem = VerifiedInference(
                         longitude = item!!.longitude!!.toFloat(),
                         latitude = item.latitude!!.toFloat(),
@@ -99,15 +96,30 @@ class HomeListDataViewModel @Inject constructor(
                         remoteImgUrl = item.url!!,
                         timestamp = item.timestamp!!.toLong(),
                     )
-
-                    verifiedInferenceRepository
-                        .insertVerifiedInference(verifiedInferenceItem)
-
-                    _inferences.add(verifiedInferenceItem)
-
+                    arrayList.add(verifiedInferenceItem)
                 }
-                verifiedInferenceRepository.setVerifiedInferenceUpdateTime(System.currentTimeMillis())
+                if(data.data!!.currentPage!! == data.data!!.lastPage!!){
+                    break;
+                }
+
+                data = verifiedInferenceRepository
+                    .syncFromServer(data.data!!.currentPage!!+1)
+                    .first()
             }
+
+            verifiedInferenceRepository
+                .resetTable()
+                .first()
+
+            _inferences.clear()
+
+            for (item in arrayList) {
+                verifiedInferenceRepository
+                    .insertVerifiedInference(item)
+                _inferences.add(item)
+            }
+                verifiedInferenceRepository.setVerifiedInferenceUpdateTime(System.currentTimeMillis())
+
         }
     }
 
