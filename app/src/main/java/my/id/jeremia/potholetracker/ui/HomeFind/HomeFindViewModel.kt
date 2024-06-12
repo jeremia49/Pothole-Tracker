@@ -13,10 +13,10 @@ import androidx.lifecycle.viewModelScope
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.libraries.places.api.Places
 import com.google.android.libraries.places.api.model.AutocompletePrediction
-import com.google.android.libraries.places.api.model.CircularBounds
 import com.google.android.libraries.places.api.model.Place
 import com.google.android.libraries.places.api.net.FindAutocompletePredictionsRequest
-import com.google.maps.android.heatmaps.WeightedLatLng
+import com.google.maps.android.heatmaps.Gradient
+import com.google.maps.android.heatmaps.HeatmapTileProvider
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.FlowPreview
@@ -28,10 +28,8 @@ import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import my.id.jeremia.potholetracker.R
-import my.id.jeremia.potholetracker.data.local.db.entity.VerifiedInference
 import my.id.jeremia.potholetracker.data.repository.VerifiedInferenceRepository
-import my.id.jeremia.potholetracker.ui.HomeContribute.ContributeActivity.ContributeActivity
-import my.id.jeremia.potholetracker.ui.HomeFind.NavigationView.NavigationActivity
+import my.id.jeremia.potholetracker.ui.HomeFind.NavigationActivity.NavigationActivity
 import my.id.jeremia.potholetracker.ui.base.BaseViewModel
 import my.id.jeremia.potholetracker.ui.common.loader.Loader
 import my.id.jeremia.potholetracker.ui.common.snackbar.Messenger
@@ -60,11 +58,11 @@ class HomeFindViewModel @Inject constructor(
         val siantarCamPos = LatLng(2.964283004846631, 99.0595995064405)
     }
 
-    private val _clusterItem = mutableStateListOf<InferencePoint>()
-    val clusterItem : SnapshotStateList<InferencePoint> = _clusterItem
+//    private val _clusterItem = mutableStateListOf<InferencePoint>()
+//    val clusterItem : SnapshotStateList<InferencePoint> = _clusterItem
 
-    private val _latlngs = mutableStateListOf<WeightedLatLng>()
-    val latlngs : SnapshotStateList<WeightedLatLng> = _latlngs
+    private val _latlngs = mutableStateListOf<LatLng>()
+    val latlngs : SnapshotStateList<LatLng> = _latlngs
 
     val placesClient = Places.createClient(ctx)
     val placeField = listOf(
@@ -83,6 +81,10 @@ class HomeFindViewModel @Inject constructor(
 
     val _searchResults = mutableStateOf<List<AutocompletePrediction>>(emptyList())
     val searchResult: State<List<AutocompletePrediction>> = _searchResults
+
+
+    private var _heatmapProvider = mutableStateOf<HeatmapTileProvider?>(null)
+    var heatmapProvider : State<HeatmapTileProvider?> = _heatmapProvider
 
     fun updateSearchingState(value: Boolean) {
         _isSearching.tryEmit(value)
@@ -103,23 +105,37 @@ class HomeFindViewModel @Inject constructor(
 
                 for (inference in verifiedInference) {
 
-                    var weight = 1.0;
                     if (inference.status == "berlubang") {
                         // Hanya Berlubang
-                        _clusterItem.add(InferencePoint(LatLng(inference.latitude.toDouble(), inference.longitude.toDouble())))
+//                        _clusterItem.add(InferencePoint(LatLng(inference.latitude.toDouble(), inference.longitude.toDouble())))
 
-                        weight = 10.0;
-                    }
-                    _latlngs.add(
-                        WeightedLatLng(
+                        _latlngs.add(
                             LatLng(
                                 inference.latitude.toDouble(),
                                 inference.longitude.toDouble()
                             ),
-                            weight,
                         )
-                    )
+                    }
+
+
                 }
+
+
+                val colors = intArrayOf(
+                    android.graphics.Color.TRANSPARENT,  // transparent
+                    android.graphics.Color.rgb(255, 0, 0) // red
+                )
+                val startPoints = floatArrayOf(0.8f, 1f)
+                val gradient = Gradient(colors, startPoints)
+
+                _heatmapProvider.value = HeatmapTileProvider
+                    .Builder()
+                    .data(latlngs)
+                    .gradient(gradient)
+                    .radius(25)
+                    .opacity(1.0)
+                    .maxIntensity(10.0)
+                    .build()
             }
         }
 

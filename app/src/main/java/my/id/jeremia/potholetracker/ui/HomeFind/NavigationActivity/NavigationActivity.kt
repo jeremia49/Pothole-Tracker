@@ -1,4 +1,4 @@
-package my.id.jeremia.potholetracker.ui.HomeFind.NavigationView
+package my.id.jeremia.potholetracker.ui.HomeFind.NavigationActivity
 
 import android.annotation.SuppressLint
 import android.graphics.Color
@@ -8,29 +8,27 @@ import android.view.View
 import androidx.activity.ComponentActivity
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
-import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.lifecycle.Observer
+import coil.load
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
-import com.google.android.gms.maps.LocationSource
 import com.google.android.gms.maps.MapView
+import com.google.android.gms.maps.model.BitmapDescriptorFactory
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.Marker
 import com.google.android.gms.maps.model.MarkerOptions
 import com.google.android.gms.maps.model.PolylineOptions
 import com.google.maps.android.PolyUtil
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.delay
 import my.id.jeremia.potholetracker.R
-import my.id.jeremia.potholetracker.databinding.ActivityContributeBinding
 import my.id.jeremia.potholetracker.databinding.ActivityNavigationBinding
-import my.id.jeremia.potholetracker.ui.HomeContribute.ContributeActivity.ContributeViewModel
 import my.id.jeremia.potholetracker.ui.HomeFind.HomeFindViewModel
 import my.id.jeremia.potholetracker.utils.googlemaps.isPointOnPolyline
 import org.locationtech.jts.geom.Coordinate
 import org.locationtech.jts.geom.GeometryFactory
+import kotlin.math.abs
 
 @AndroidEntryPoint
 class NavigationActivity : ComponentActivity() {
@@ -54,6 +52,9 @@ class NavigationActivity : ComponentActivity() {
     fun initializeMarker() {
         myLocationMarker = googleMap!!.addMarker(
             MarkerOptions()
+                .icon(
+                    BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN)
+                )
                 .position(
                     LatLng(
                         viewModel.locationData.value!!.latitude,
@@ -70,10 +71,18 @@ class NavigationActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
 
-        placeID = getIntent().getStringExtra("placeId")!!
+        placeID = getIntent().getStringExtra("placeId") ?: "ChIJ6xjGDS-fMTARsNkgsoCdAwQ"
         viewModel.placeID.value = placeID
 
         viewBinding = ActivityNavigationBinding.inflate(layoutInflater)
+
+        ViewCompat.setOnApplyWindowInsetsListener(viewBinding.root) { v, insets ->
+            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
+            viewBinding.main.apply {
+                setPaddingRelative(paddingStart, paddingTop, paddingEnd, systemBars.bottom)
+            }
+            return@setOnApplyWindowInsetsListener insets
+        }
         setContentView(viewBinding.root)
 
         var mapViewBundle: Bundle? = null
@@ -95,17 +104,18 @@ class NavigationActivity : ComponentActivity() {
             googleMap!!.animateCamera(cameraUpdate)
 
             googleMap!!.setOnCameraMoveStartedListener { reason ->
-                println("Reason $reason")
                 if (reason == 1) {
                     shouldFollowUserPosition = false
                 }
-                println("$shouldFollowUserPosition")
             }
 
             googleMap!!.setOnMyLocationButtonClickListener(
                 GoogleMap.OnMyLocationButtonClickListener {
                     val cameraUpdate = CameraUpdateFactory.newLatLngZoom(
-                        LatLng(viewModel.locationData.value!!.latitude, viewModel.locationData.value!!.longitude), 17f
+                        LatLng(
+                            viewModel.locationData.value!!.latitude,
+                            viewModel.locationData.value!!.longitude
+                        ), 17f
                     )
                     googleMap!!.animateCamera(cameraUpdate)
 
@@ -139,6 +149,8 @@ class NavigationActivity : ComponentActivity() {
                     googleMap!!.animateCamera(cameraUpdate)
 
                     viewModel.startGetRoute()
+
+                    viewModel.stopLoading()
                 }
                 viewModel.locationData.removeObserver(this)
             }
@@ -159,54 +171,6 @@ class NavigationActivity : ComponentActivity() {
                     googleMap!!.animateCamera(cameraUpdate)
                 }
 
-                if (viewModel.kdTree != null) {
-
-                    val (nn, ssq, nv) = viewModel.kdTree!!.nearest(
-                        doubleArrayOf(it.latitude, it.longitude)
-                    )
-
-                    println("Nearest neighbor : ${nn?.asList()}")
-                    println("Distance         : ${Math.sqrt(ssq)}")
-                    println("Nodes visited    : $nv")
-
-                    val results = floatArrayOf(0f,0f)
-                    Location.distanceBetween(
-                        it.latitude,
-                        it.longitude,
-                        nn!![0],
-                        nn[1],
-                        results
-                    )
-                    println("Results : ${results.contentToString()}")
-
-                    val distance = results[0]
-                    val bearing = if(results.size > 2){
-                            results[2]
-                        }else if(results.size > 1){
-                            results[1]
-                        }else{
-                            0f
-                    }
-                    println("distance : $distance")
-                    println("bearing : $bearing")
-                    if(bearing>0f&&bearing<=180f){
-                        println("Lubang dalam ${distance}m")
-                    }
-
-
-                    if(potholeMarker == null){
-                        potholeMarker = googleMap!!.addMarker(
-                            MarkerOptions()
-                                .position(
-                                    LatLng(
-                                        nn!![0],
-                                        nn[1]
-                                    )))!!
-                    }else{
-                        potholeMarker!!.position = LatLng(nn!![0], nn[1])
-                    }
-
-                }
             }
         }
 
@@ -219,33 +183,6 @@ class NavigationActivity : ComponentActivity() {
                         .width(10f)
                         .color(Color.BLUE)
                 )
-
-                val polylineArray : Array<Coordinate> = emptyArray()
-                for (p in polyline) {
-                    polylineArray.plus(
-                        Coordinate(p.latitude, p.longitude)
-                    )
-                }
-
-                val geometryFactory = GeometryFactory()
-                val lineString = geometryFactory.createLineString(polylineArray)
-
-                val inferencesOnPolyline = viewModel.inferencesBerlubang.filter{inf->
-                    isPointOnPolyline(Coordinate(inf.latitude.toDouble(), inf.longitude.toDouble(),), lineString)
-                }
-
-                for(inf in inferencesOnPolyline){
-                    googleMap!!.addMarker(
-                        MarkerOptions()
-                            .position(
-                                LatLng(
-                                    inf.latitude!!.toDouble(),
-                                    inf.longitude!!.toDouble()
-                                )
-                            )
-                            .title("Berlubang")
-                    )
-                }
 
 
                 val end = it.routes!![0]?.legs?.get(
@@ -267,5 +204,66 @@ class NavigationActivity : ComponentActivity() {
         }
 
 
+        viewModel.overlappedInferences.observe(this) {
+            for (inf in it) {
+                googleMap!!.addMarker(
+                    MarkerOptions()
+                        .icon(
+                            BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_ORANGE)
+                        )
+                        .position(
+                            LatLng(
+                                inf.latitude!!.toDouble(),
+                                inf.longitude!!.toDouble()
+                            )
+                        )
+                        .title("Berlubang")
+                )
+            }
+        }
+
+        viewModel.currentClosestPothole.observe(this) {
+
+            if (it.distance > 200 ) {
+                viewBinding.containerwarning.visibility = View.INVISIBLE
+                return@observe
+            }
+
+            if(!it.willPassBy){
+                viewBinding.containerwarning.visibility = View.INVISIBLE
+                return@observe
+            }
+
+            viewBinding.containerwarning.visibility = View.VISIBLE
+
+//            viewBinding.potholeImage.load("https://picsum.photos/200/300")
+
+            val text =
+                "Ada lubang di depan!\nLat : ${it.latitude}\nLong : ${it.longitude}\nDistance: ${it.distance}m\nBearing: ${it.bearing}"
+            viewBinding.text.text = text
+
+
+            if (potholeMarker == null) {
+                potholeMarker = googleMap!!.addMarker(
+                    MarkerOptions()
+                        .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE))
+                        .position(
+                            LatLng(
+                                it.latitude,
+                                it.longitude,
+                            )
+                        )
+                )!!
+            } else {
+                potholeMarker!!.position = LatLng(
+                    it.latitude,
+                    it.longitude,
+                )
+            }
+
+        }
+
     }
+
+
 }

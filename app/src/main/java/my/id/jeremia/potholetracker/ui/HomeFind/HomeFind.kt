@@ -29,6 +29,7 @@ import androidx.compose.material3.SearchBar
 import androidx.compose.material3.SearchBarDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -59,8 +60,8 @@ fun HomeFind(modifier: Modifier = Modifier, viewModel: HomeFindViewModel) {
     BackHandler { viewModel.navigator.finish() }
     HomeFindView(
         modifier,
-        clusterItem = viewModel.clusterItem,
-        latlngs = viewModel.latlngs,
+//        clusterItem = viewModel.clusterItem,
+        heatmapprovider = viewModel.heatmapProvider.value,
         searchTextInput = viewModel.searchTextInput.collectAsStateWithLifecycle().value,
         onSearchTextInputChange = { viewModel.onSearchTextInputChange(it) },
         locationPermission = viewModel.locationPermission.value,
@@ -77,8 +78,8 @@ fun HomeFind(modifier: Modifier = Modifier, viewModel: HomeFindViewModel) {
 @Composable
 fun HomeFindView(
     modifier: Modifier = Modifier,
-    clusterItem : List<InferencePoint> = emptyList(),
-    latlngs: List<WeightedLatLng> = emptyList(),
+//    clusterItem : List<InferencePoint> = emptyList(),
+    heatmapprovider: HeatmapTileProvider? = null,
     searchTextInput: String = "",
     onSearchTextInputChange: (String) -> Unit = {},
     locationPermission: Boolean = false,
@@ -106,28 +107,8 @@ fun HomeFindView(
                 .fillMaxSize()
                 .padding(0.dp)
         ) {
-
-            var heatmapprovider: HeatmapTileProvider? = null;
-            if (latlngs.isNotEmpty()) {
-                val colors = intArrayOf(
-                    android.graphics.Color.rgb(0, 255, 0),  // green
-                    android.graphics.Color.rgb(255, 0, 0) // red
-                )
-                val startPoints = floatArrayOf(0.8f, 1f)
-                val gradient = Gradient(colors, startPoints)
-
-                heatmapprovider = HeatmapTileProvider
-                    .Builder()
-                    .weightedData(latlngs)
-                    .gradient(gradient)
-                    .build()
-
-                heatmapprovider
-                    .setOpacity(1.0)
-            }
-
             val cameraPositionState = rememberCameraPositionState {
-                position = CameraPosition.fromLatLngZoom(HomeFindViewModel.siantarCamPos, 10f)
+                position = CameraPosition.fromLatLngZoom(HomeFindViewModel.siantarCamPos, 11f)
             }
 
             GoogleMap(
@@ -135,7 +116,6 @@ fun HomeFindView(
                     .fillMaxSize(),
                 cameraPositionState = cameraPositionState,
                 googleMapOptionsFactory = {
-
                     GoogleMapOptions()
                         .mapToolbarEnabled(true)
                         .compassEnabled(true)
@@ -155,7 +135,7 @@ fun HomeFindView(
                     TileOverlay(tileProvider = heatmapprovider)
                 }
 
-                Clustering(items = clusterItem)
+//                Clustering(items = clusterItem)
 
             }
 
