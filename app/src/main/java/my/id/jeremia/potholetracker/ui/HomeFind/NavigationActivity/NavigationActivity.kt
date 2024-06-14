@@ -3,6 +3,7 @@ package my.id.jeremia.potholetracker.ui.HomeFind.NavigationActivity
 import android.annotation.SuppressLint
 import android.graphics.Color
 import android.location.Location
+import android.media.MediaPlayer
 import android.os.Bundle
 import android.view.View
 import androidx.activity.ComponentActivity
@@ -49,6 +50,8 @@ class NavigationActivity : ComponentActivity() {
     private var isMyLocationInitialized: Boolean = false
     private var shouldFollowUserPosition: Boolean = true
 
+    private lateinit var mp : MediaPlayer;
+
     fun initializeMarker() {
         myLocationMarker = googleMap!!.addMarker(
             MarkerOptions()
@@ -75,6 +78,8 @@ class NavigationActivity : ComponentActivity() {
         viewModel.placeID.value = placeID
 
         viewBinding = ActivityNavigationBinding.inflate(layoutInflater)
+
+        mp = MediaPlayer.create(this, R.raw.notification_sound)
 
         ViewCompat.setOnApplyWindowInsetsListener(viewBinding.root) { v, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
@@ -234,6 +239,7 @@ class NavigationActivity : ComponentActivity() {
                 return@observe
             }
 
+            mp.start()
             viewBinding.containerwarning.visibility = View.VISIBLE
 
 //            viewBinding.potholeImage.load("https://picsum.photos/200/300")
@@ -265,5 +271,9 @@ class NavigationActivity : ComponentActivity() {
 
     }
 
+    override fun onDestroy() {
+        mp.release()
+        super.onDestroy()
+    }
 
 }
