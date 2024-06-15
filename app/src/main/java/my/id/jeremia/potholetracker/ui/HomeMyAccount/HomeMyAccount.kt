@@ -115,6 +115,36 @@ fun HomeMyAccountView(
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Image(
+                    painter = painterResource(id = R.drawable.view_list),
+                    contentDescription = "Lihat Deteksi",
+                    modifier = Modifier
+                        .padding(start = 30.dp, end = 25.dp)
+                        .size(30.dp)
+
+                )
+                Text("Lihat Deteksi Saya >")
+            }
+
+
+        }
+
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 15.dp)
+        ) {
+
+
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(50.dp)
+                    .clickable {
+                        doLogout();
+                    },
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Image(
                     painter = painterResource(id = R.drawable.logout),
                     contentDescription = "Logout",
                     modifier = Modifier
@@ -122,7 +152,7 @@ fun HomeMyAccountView(
                         .size(30.dp)
 
                 )
-                Text("Keluar")
+                Text("Keluar >")
             }
 
 

@@ -25,7 +25,7 @@ object TensorflowModule {
         @ApplicationContext context: Context
     ):ByteBuffer = TensorflowUtils.loadModelFile(
         context,
-        "pothole_3jalur_v1_metadata.tflite"
+        "SM_60_20_20_224.tflite"
     )
 
 
@@ -40,7 +40,7 @@ object TensorflowModule {
     fun provideImageProcessor(): ImageProcessor {
         return ImageProcessor.Builder()
                 .add(
-                    ResizeWithCropOrPadOp(512, 512),
+                    ResizeWithCropOrPadOp(224, 224),
                 )
                 .add(
                     RescaleOp(),
