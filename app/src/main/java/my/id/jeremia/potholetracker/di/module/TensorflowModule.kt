@@ -25,7 +25,7 @@ object TensorflowModule {
         @ApplicationContext context: Context
     ):ByteBuffer = TensorflowUtils.loadModelFile(
         context,
-        "SM_60_20_20_224.tflite"
+        "SM_60_20_20_224-optimized.tflite"
     )
 
 
