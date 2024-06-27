@@ -41,6 +41,7 @@ import com.google.maps.android.compose.MarkerState
 import com.google.maps.android.compose.rememberCameraPositionState
 import my.id.jeremia.potholetracker.R
 import my.id.jeremia.potholetracker.ui.common.image.NetworkImage
+import my.id.jeremia.potholetracker.ui.navigation.Destination
 import my.id.jeremia.potholetracker.utils.crypto.hashSHA256
 
 @Composable
@@ -51,6 +52,9 @@ fun HomeMyAccount(modifier: Modifier = Modifier, viewModel: HomeMyAccountViewMod
         doLogout = {viewModel.doLogout()},
         username = viewModel.username.collectAsState(initial = "").value ?: "",
         email = viewModel.email.collectAsState(initial = "").value ?: "",
+        navigatehistory = {
+            viewModel.navigator.navigateTo(Destination.Home.ContributeList.route)
+        }
     )
 }
 
@@ -59,6 +63,7 @@ fun HomeMyAccount(modifier: Modifier = Modifier, viewModel: HomeMyAccountViewMod
 fun HomeMyAccountView(
     modifier: Modifier = Modifier,
     doLogout: () -> Unit = {},
+    navigatehistory : () -> Unit = {},
     username:String ="Jeremia Manurung",
     email:String="jeremiaman49@gmail.com",
 ) {
@@ -110,7 +115,7 @@ fun HomeMyAccountView(
                     .fillMaxWidth()
                     .height(50.dp)
                     .clickable {
-                        doLogout();
+                        navigatehistory();
                     },
                 verticalAlignment = Alignment.CenterVertically,
             ) {
