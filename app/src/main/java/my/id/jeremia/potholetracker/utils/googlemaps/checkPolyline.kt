@@ -10,6 +10,6 @@ fun isPointOnPolyline(pointCoord: Coordinate, lineString: LineString): Boolean {
     val point = geometryFactory.createPoint(pointCoord)
     val distanceOp = DistanceOp(point, lineString)
     val distance = distanceOp.distance()
-    val tolerance = 1e-6
+    val tolerance = 1e-4
     return distance < tolerance
 }

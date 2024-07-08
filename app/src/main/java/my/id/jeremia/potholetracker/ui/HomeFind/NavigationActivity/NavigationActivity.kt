@@ -6,6 +6,7 @@ import android.location.Location
 import android.media.MediaPlayer
 import android.os.Bundle
 import android.view.View
+import android.view.WindowManager
 import androidx.activity.ComponentActivity
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
@@ -73,6 +74,8 @@ class NavigationActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+
+        window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
 
         placeID = getIntent().getStringExtra("placeId") ?: "ChIJ6xjGDS-fMTARsNkgsoCdAwQ"
         viewModel.placeID.value = placeID
@@ -229,7 +232,7 @@ class NavigationActivity : ComponentActivity() {
 
         viewModel.currentClosestPothole.observe(this) {
 
-            if (it.distance > 200 ) {
+            if (it.distance > 100 ) {
                 viewBinding.containerwarning.visibility = View.INVISIBLE
                 return@observe
             }
