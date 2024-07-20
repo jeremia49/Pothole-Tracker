@@ -93,24 +93,23 @@ fun RegisterView(
     Box(
         modifier = modifier
             .fillMaxSize()
-            .padding(20.dp)
+            .padding(top=5.dp, start = 20.dp, end = 20.dp)
     ) {
 
 
         Column(
             modifier = Modifier
-                .align(Alignment.Center)
+                .align(Alignment.TopCenter)
                 .fillMaxHeight()
                 .verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.SpaceEvenly,
-
         ) {
 
 
             Column(
-                modifier = modifier
+                modifier = Modifier
                     .padding(
-                        top = 10.dp
+                        top = 5.dp
                     )
             ) {
 
@@ -134,7 +133,7 @@ fun RegisterView(
                 modifier = Modifier.padding(
                     start = 16.dp,
                     end = 16.dp,
-                    top = 5.dp,
+                    top = 15.dp,
                     bottom = 4.dp
                 )
             ) {
@@ -240,7 +239,6 @@ fun RegisterView(
                         .fillMaxWidth()
                         .padding(
                             top = 15.dp,
-                            bottom = 20.dp
                         ),
                     onClick = register,
                     colors = ButtonDefaults.buttonColors().copy(
